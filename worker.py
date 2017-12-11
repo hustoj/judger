@@ -11,9 +11,7 @@ from datautils import get_out_data, get_data_path
 from db import get_job, Solutions
 from executor import Executor, ExecuteException
 from models import Problems
-from utils import logger
-
-DEBUG = True
+from utils import logger, cfg, is_debug
 
 
 class WorkerIsBusy(Exception):
@@ -64,6 +62,7 @@ class Worker(object):
         try:
             self.compile()
             self.execute()
+            self.clean()
         except CompileException as e:
             logger.error('Compile Error: ' + e.args[0])
             self.solution.result = self.solution.COMPILE_ERROR
@@ -118,13 +117,15 @@ class Worker(object):
         self.clean()
 
     def clean(self):
-        if self.path and not DEBUG:
+        if self.path and not is_debug():
+            logger.info("Clean working dir {path}".format(path=self.path))
             os.chdir(self.path)
             os.system('rm -rf *')
             os.rmdir(self.path)
 
     def change_working_dir(self):
         self.path = mkdtemp(prefix='judge_')
+        shutil.chown(self.path, cfg.client.user, cfg.client.group)
         logger.info('worker #{id} dir is {path}'.format(id=self.worker_id, path=self.path))
         os.chdir(self.path)
 
