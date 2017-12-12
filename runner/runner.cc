@@ -82,13 +82,14 @@ int check_status(int status, pid_t pid);
 int initial();
 int run();
 int initial_syscall_limits();
-int write_log(const char *fmt, ...);
 int get_proc_info(pid_t pid, string field);
 
 int main()
 {
-    load_config();
+    initial();
+
     run();
+
     return 0;
 }
 
@@ -98,7 +99,7 @@ int do_change_root()
     int ret = chroot(setting.working_dir.c_str());
     if (ret != 0)
     {
-        printf("chroot failed\n");
+        syslog(LOG_ERR, "chroot failed");
         exit(5);
     }
 
@@ -107,9 +108,8 @@ int do_change_root()
 
 int run()
 {
-    initial();
     pid_t child_pid = fork();
-
+    
     do_change_root();
 
     if (child_pid == 0)
@@ -128,8 +128,7 @@ int run()
         ret = execl(name.c_str(), name.c_str(), NULL);
         if (ret == -1)
         {
-            char msg[BUFFER_SIZE];
-            syslog(LOG_CRIT, msg);
+            syslog(LOG_ERR, "excel failed!");
         }
 
         return 0;
@@ -174,6 +173,11 @@ int monitor_child(pid_t pid)
 
 int initial()
 {
+    load_config();
+
+    openlog("runner", LOG_PERROR | LOG_CONS, LOG_USER);
+    syslog(LOG_INFO, "woring in %s", setting.working_dir.c_str());
+
     result.retcode = OJ_AC;
     result.used_memory = 0;
     result.used_time = 0;
@@ -250,11 +254,6 @@ int detect_signal(int sig)
     return 0;
 }
 
-int write_log(const char *fmt, ...)
-{
-    return 0;
-}
-
 int check_memory(int pid)
 {
     // VmHWM and VmRSS are the process’s peak/current usage of physical RAM.
@@ -298,7 +297,7 @@ int get_proc_info(pid_t pid, string field)
             return value;
         }
     }
-    printf("not found %s\n", field.c_str());
+    syslog(LOG_ERR, "not found %s", field.c_str());
     return 0;
 }
 
@@ -306,7 +305,6 @@ int load_config()
 {
     char buff[BUFFER_SIZE];
     getcwd(buff, BUFFER_SIZE - 1);
-    // printf("CWD: %s\n", buff);
     setting.working_dir = buff;
 
     ifstream configFile("case.conf");
@@ -325,7 +323,7 @@ int reset_io()
     FILE *fd = freopen("data.in", "r", stdin);
     if (fd == NULL)
     {
-        fprintf(stderr, "stdin failed\n");
+        syslog(LOG_ERR, "stdin failed");
     }
 
     int file_mode = S_IWOTH | S_IWUSR | S_IRUSR | S_IROTH;
@@ -333,8 +331,7 @@ int reset_io()
     fd = freopen("user.out", "w", stdout);
     if (fd == NULL)
     {
-        fprintf(stderr, "stdout failed\n");
-        syslog(LOG_CRIT, "stdout failed");
+        syslog(LOG_ERR, "stdout failed");
     }
 
     chmod("user.out", file_mode);
@@ -342,7 +339,7 @@ int reset_io()
     fd = freopen("user.error", "w", stderr);
     if (fd == NULL)
     {
-        syslog(LOG_CRIT, "stderror failed");
+        syslog(LOG_ERR, "stderror failed");
     }
     chmod("user.error", file_mode);
 
@@ -365,7 +362,7 @@ int write_result()
 
     if (!resultFile.is_open())
     {
-        printf("open result file failed\n");
+        syslog(LOG_ERR, "open result file failed\n");
     }
     resultFile << result.retcode << endl;
     resultFile << result.used_time << endl;
