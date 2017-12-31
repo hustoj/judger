@@ -18,11 +18,7 @@ class WorkerIsBusy(Exception):
     pass
 
 
-class Worker(object):
-    path = None
-    solution = None
-    problem = None
-
+class LanguageConf(object):
     lang_mapping = {
         1: {
             'ext': 'c',
@@ -34,10 +30,27 @@ class Worker(object):
         }
     }
 
+    def get_config(self, language):
+        if language in self.lang_mapping:
+            return self.lang_mapping[language]
+        raise Exception('language not found')
+
+
+class Worker(object):
+    path = None
+    solution = None
+    problem = None
+    busy = False
+
     def __init__(self, worker_id):
         super(Worker, self).__init__()
+        self.busy = False
         self.worker_id = worker_id
         self.change_working_dir()
+        self.lang_conf = LanguageConf()
+
+    def is_busy(self):
+        return self.busy
 
     def update_solution(self, result, info=None):
         self.solution.result = result
@@ -50,19 +63,14 @@ class Worker(object):
             self.solution.memory_cost = info.memory_cost
         self.solution.save()
 
-    def get_lang_config(self):
-        if self.solution.language in self.lang_mapping:
-            return self.lang_mapping[self.solution.language]
-        raise Exception('language not found')
-
     def process(self, solution: Solutions):
         logger.info('process job, %s', solution)
+        self.busy = True
         self.solution = solution
         self.problem = Problems.get(Problems.id == self.solution.origin_problem)
         try:
             self.compile()
             self.execute()
-            self.clean()
         except CompileException as e:
             logger.error('Compile Error: ' + e.args[0])
             self.solution.result = self.solution.COMPILE_ERROR
@@ -71,15 +79,14 @@ class Worker(object):
         except ExecuteException as e:
             self.update_solution(Solutions.TIME_LIMIT)
             logger.error('Execute failed', e.args, self.solution)
+        finally:
+            self.clean()
 
     def compile(self):
         logger.info('Compiling {id}'.format(id=self.solution.id))
         self.update_solution(Solutions.COMPILING)
-        self.do_compile()
-
-    def do_compile(self):
         compiler = Compiler()
-        ret = compiler.compile(self.solution.code, self.get_lang_config())
+        ret = compiler.compile(self.solution.code, self.lang_conf.get_config(self.solution.language))
         if ret is not None:
             raise CompileException(ret)
 
@@ -117,6 +124,7 @@ class Worker(object):
         self.clean()
 
     def clean(self):
+        self.busy = False
         if self.path and not is_debug():
             logger.info("Clean working dir {path}".format(path=self.path))
             os.chdir(self.path)
@@ -125,8 +133,10 @@ class Worker(object):
 
     def change_working_dir(self):
         self.path = mkdtemp(prefix='judge_')
-        shutil.chown(self.path, cfg.client.user, cfg.client.group)
+
         logger.info('worker #{id} dir is {path}'.format(id=self.worker_id, path=self.path))
+
+        shutil.chown(self.path, cfg.client.user, cfg.client.group)
         os.chdir(self.path)
 
     def prepare_environment(self):
@@ -141,6 +151,30 @@ class Worker(object):
         file = open("case.conf", "w")
         file.write("{0}\n".format(self.problem.time_limit))
         file.write("{0}\n".format(self.problem.memory_limit))
+
+
+class WorkerPool(object):
+    pool = []
+
+    def __init__(self, num):
+        self.limit = num + 1
+        for i in range(1, self.limit):
+            self.pool[i] = None
+
+    def get_worker(self) -> Worker:
+        """
+        :return: Worker
+        """
+        for i in range(1, self.limit):
+            if isinstance(self.pool[i], Worker):
+                if self.pool[i].is_busy():
+                    continue
+                return self.pool[i]
+            # new worker
+            self.pool[i] = Worker(i)
+            return self.pool[i]
+        # no worker available
+        raise WorkerIsBusy
 
 
 if __name__ == '__main__':

@@ -11,7 +11,7 @@ from peewee import DoesNotExist
 
 from db import get_job
 from utils import cfg, logger
-from worker import Worker, WorkerIsBusy
+from worker import WorkerIsBusy, WorkerPool
 
 
 class GracefulKiller:
@@ -22,33 +22,16 @@ class GracefulKiller:
         signal.signal(signal.SIGTERM, self.exit_gracefully)
 
     def exit_gracefully(self, signum, frame):
-        logger.info('receive signal, exiting')
+        logger.info('Judged receive signal, exit...')
         self.kill_now = True
 
 
 class Daemon(object):
-    _worker = {}
-    _maxWorker = 8
+    max_worker = 8
 
-    def __init__(self, worker_limit=10):
+    def __init__(self, limit=10):
         super(Daemon, self).__init__()
-        self._maxWorker = worker_limit + 1
-        for i in range(1, self._maxWorker):
-            self._worker[i] = 1
-
-    def get_worker(self):
-        """
-            :rtype: worker.Worker
-        """
-        for i in range(1, self._maxWorker):
-            if isinstance(self._worker[i], Worker):
-                continue
-            self._worker[i] = Worker(i)
-            return self._worker[i]
-        raise WorkerIsBusy
-
-    def clean_files(self):
-        os.remove(cfg.server.pid_file)
+        self.worker_pool = WorkerPool(limit)
 
     def run(self):
         self.singleton()
@@ -58,7 +41,7 @@ class Daemon(object):
                 break
             try:
                 job = get_job()
-                worker = self.get_worker()
+                worker = self.worker_pool.get_worker()
                 worker.process(job)
             except DoesNotExist as e:
                 logger.info('no job available, sleeping')
@@ -69,6 +52,9 @@ class Daemon(object):
 
     def __del__(self):
         self.clean_files()
+
+    def clean_files(self):
+        os.remove(cfg.server.pid_file)
 
     def singleton(self):
         fp = open(cfg.server.pid_file, 'w')

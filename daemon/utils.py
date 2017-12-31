@@ -5,7 +5,7 @@ import argparse
 import logging
 import os
 
-from config import load_config
+from .config import load_config
 
 
 def get_config_path():

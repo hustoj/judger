@@ -4,7 +4,7 @@ import multiprocessing
 import subprocess
 from signal import alarm, signal, SIGALRM
 
-from utils import logger
+from .utils import logger
 
 MAX_EXECUTE_TIME = 30
 
