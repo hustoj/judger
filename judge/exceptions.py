@@ -1,0 +1,2 @@
+class JudgeException(Exception):
+    pass

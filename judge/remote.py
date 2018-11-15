@@ -1,0 +1,100 @@
+import json
+import logging
+
+from requests import Session
+
+from .result import Result
+
+
+class FetchDataFailed(Exception):
+    pass
+
+
+def new_api(cfg):
+    client = Session()
+    api = WebApi(cfg)
+    api.set_client(client)
+
+    return api
+
+
+class UrlMaster(object):
+    base_url = ...
+
+    def __init__(self, base_url: str) -> None:
+        super().__init__()
+        if not base_url.endswith('/'):
+            base_url += '/'
+        self.base_url = base_url
+
+    @property
+    def data(self):
+        return self.base_url + 'data'
+
+    @property
+    def report(self):
+        return self.base_url + 'report'
+
+    @property
+    def heartbeat(self):
+        return self.base_url + 'heartbeat'
+
+
+class InvalidData(BaseException):
+    pass
+
+
+class DataResponse(object):
+    def __init__(self, response):
+        print(response)
+        self.data = json.loads(response)
+
+    def is_valid(self):
+        return 'input' in self.data and 'output' in self.data
+
+    def get_input(self):
+        if 'input' in self.data:
+            return self.data['input']
+        raise InvalidData('data request failed')
+
+    def get_output(self):
+        if 'output' in self.data:
+            return self.data['output']
+        raise InvalidData('data request failed')
+
+
+class WebApi(object):
+    _client = ...
+
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.url_manager = UrlMaster(cfg['url'])
+
+    def set_client(self, client: Session):
+        self._client = client
+        self._client.headers.update(self._auth_info())
+
+    def _auth_info(self):
+        header = {
+            'Judge-Code': self.cfg['code']
+        }
+        return header
+
+    def get_data(self, pid) -> DataResponse:
+        logging.info('Fetch data of {pid}'.format(pid=pid))
+        payload = {'pid': pid}
+
+        r = self._client.get(self.url_manager.data, params=payload)
+        if r.status_code != 200:
+            logging.error('fetch data failed: {r}'.format(r=r.content))
+            raise FetchDataFailed()
+        return DataResponse(r.content)
+
+    def report(self, result):
+        if isinstance(result, Result):
+            result = result.as_dict()
+        print(result)
+        return self._client.post(self.url_manager.report, params=result)
+
+    def heartbeat(self):
+        self._client.post(self.url_manager.heartbeat)

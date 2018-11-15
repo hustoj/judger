@@ -1,0 +1,25 @@
+[judged]
+pid_file = "/tmp/hustoj.pid"
+sleep_time = 1
+server_id = 0
+log_file = "/tmp/hustoj.log"
+data_cache = "/tmp/hoj_data/"
+
+[api]
+url = "http://neo.test/judge/api/"
+judge_id = "1"
+code = "d1553bc6-54f0-43d7-9e23-b0eeccd45341"
+
+[mq]
+host = "212.64.56.116"
+port = 5672
+db = "hustoj"
+username = "hustoj"
+password = "zCyp4egUjqF0"
+queue = "hustoj"
+vhost = "/"
+routing_key = "hustoj"
+
+[worker]
+path = "/tmp/hustoj"
+

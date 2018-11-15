@@ -1,9 +1,10 @@
 #!/bin/env python3
 
+import logging
 import subprocess
 from signal import alarm, signal, SIGALRM
 
-from utils import logger
+from judge.language import LanguageType
 
 MAX_COMPILE_TIME = 3
 
@@ -21,24 +22,22 @@ def alarm_handler(signum, frame):
 
 
 class Compiler(object):
-    config = None
-    code = None
+    language = None
+    language_centre = ...
+    language_type = ...
 
-    def writefile(self):
-        filename = 'Main.' + self.config['ext']
-        f = open(filename, 'w')
-        f.write(self.code)
+    def _writefile(self, code):
+        f = open(self.language_type.source_name, 'w')
+        f.write(code)
         f.close()
 
-    def compile(self, code, config):
-        self.code = code
-        self.config = config
-        self.writefile()
-        return self.do_compile()
+    def compile(self, code, language_type: LanguageType):
+        self.language_type = language_type
+        self._writefile(code)
+        self._compile()
 
-    def do_compile(self):
-        args = self.config['args']
-        # os.execvp(args[0], args)
+    def _compile(self):
+        args = self.language_type.full_compile_command()
 
         p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         signal(SIGALRM, alarm_handler)
@@ -46,11 +45,10 @@ class Compiler(object):
         try:
             (stdoutdata, stderrdata) = p.communicate()  # python 3.3 add timeout
             if stderrdata or stdoutdata:
-                logger.warning("Executor error:", {'out': stdoutdata, 'err': stderrdata})
+                logging.warning("Executor error: out => %s, err => %s", stdoutdata, stderrdata)
             alarm(0)
             if p.returncode != 0:
-                return str(stderrdata, 'utf8')
+                raise CompileException(stderrdata)
         except Alarm:
             p.kill()
-
-        return None
+            raise CompileException('Exceed Compile Time Limit')
