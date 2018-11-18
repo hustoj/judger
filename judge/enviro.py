@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import json
 from tempfile import mkdtemp
 
 from judge.datautils import DataManager
@@ -30,14 +31,15 @@ class Environment(object):
 
     def _place_user_input(self):
         data = self.provider.get_input(self.task.problem_id)
-        f = open('data.in', 'w+')
-        f.write(data)
-        f.close()
+        inf = open('data.in', 'w+')
+        inf.write(data)
+        inf.close()
 
     def write_case_config(self):
         file = open("case.conf", "w")
-        file.write("{0}\n".format(self.task.time_limit))
-        file.write("{0}\n".format(self.task.memory_limit))
+        task_info = self.task.as_task_info()
+        content = json.dumps(task_info)
+        file.write(content)
         file.close()
 
     def clean(self):

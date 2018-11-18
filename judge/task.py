@@ -21,6 +21,13 @@ class Task(object):
     def set_language(self, language):
         self._language = language
 
+    def as_task_info(self):
+        return {
+            'time_limit': self.time_limit,
+            'memory_limit': self.memory_limit,
+            'language': self.language,
+        }
+
     @property
     def language_type(self) -> LanguageType:
         return self._language

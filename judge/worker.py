@@ -5,12 +5,13 @@ import logging
 
 from .comparer import Compare
 from .compiler import Compiler, CompileException
+from .constant import Status
 from .datautils import DataManager
 from .enviro import Environment
-from .runner import ExecuteException, TimeLimitException, get_executor
-from .constant import Status
 from .remote import WebApi
 from .result import Result, MAX_USER_OUT
+from .runner import get_executor
+from .runner.exceptions import ExecuteException, TimeLimitException
 from .task import Task
 
 
@@ -61,21 +62,24 @@ class Worker(object):
 
     def _execute(self):
         logging.info('Executing {id} @ {path}'.format(id=self.task.task_id, path=self.environ.path))
-        executor = get_executor('docker')
-        executor.set_task(self.task)
-        return executor.execute()
+        executor = get_executor()
+        return executor.execute(self.task, self.environ.path)
 
-    def _parse_result(self, ret):
-        self.result.parse_executor_output(ret)
-        logging.info('Execute result: %s', self.result)
+    def _parse_result(self, content):
+        logging.info('%d, Execute result: %s', self.task.task_id, content)
+        self.result.parse_executor_output(content)
+
         if self.result.is_accept():
-            comparator = Compare()
-            with open('user.out') as f:
-                user_out = f.read(MAX_USER_OUT)
-            self.result.result = comparator.compare(self.data_provider.get_output(self.task.task_id)
-                                                    , user_out)
+            self.result.result = self._compare()
 
         self._report(self.result)
+
+    def _compare(self):
+        comparator = Compare()
+        with open('user.out') as f:
+            user_out = f.read(MAX_USER_OUT)
+        standard_data = self.data_provider.get_output(self.task.task_id)
+        return comparator.compare(standard_data, user_out)
 
     def _report(self, result):
         if not isinstance(result, Result):
