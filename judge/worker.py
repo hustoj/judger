@@ -70,11 +70,11 @@ class Worker(object):
         self.result.parse_executor_output(content)
 
         if self.result.is_accept():
-            self.result.result = self._compare()
+            self.result.result = self._compare_user_answer()
 
         self._report(self.result)
 
-    def _compare(self):
+    def _compare_user_answer(self):
         comparator = Compare()
         with open('user.out') as f:
             user_out = f.read(MAX_USER_OUT)

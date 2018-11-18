@@ -90,7 +90,7 @@ class TaskCentre(object):
 
         return self._channel
 
-    def next(self):
+    def next_job(self):
         channel = self.get_channel()
         method_frame, header_frame, body = channel.basic_get(self._config['queue'])
         if method_frame:

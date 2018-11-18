@@ -29,17 +29,20 @@ class Judged(object):
         while True:
             if self.killer.stop:
                 break
-            job = self.taskCenter.next()
+            job = self.taskCenter.next_job()
 
             if job:
-                logging.info("get task {job}".format(job=job))
-                task = Task.from_json(job)
-                task.set_language(self.get_language(task.language))
-                worker = self.get_worker()
-                worker.process(task)
+                self._run_job(job)
             else:
                 logging.info("no task to execute, sleep {duration}s".format(duration=self.duration))
                 sleep(self.duration)
+
+    def _run_job(self, job):
+        logging.info("get task {job}".format(job=job))
+        task = Task.from_json(job)
+        task.set_language(self.get_language(task.language))
+        worker = self.get_worker()
+        worker.process(task)
 
     def get_worker(self):
         worker = Worker(self.cfg)

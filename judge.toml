@@ -6,7 +6,7 @@ log_file = "/tmp/hustoj.log"
 data_cache = "/tmp/hoj_data/"
 
 [api]
-url = "http://neo.test/judge/api/"
+url = "http://localhost:5000/judge/api/"
 judge_id = "1"
 code = "d1553bc6-54f0-43d7-9e23-b0eeccd45341"
 

@@ -5,8 +5,10 @@ name = "pypi"
 
 [packages]
 toml = "*"
+docker = "*"
+pika = "*"
+requests = "*"
+psutil = "*"
 
 [dev-packages]
-
-[requires]
-python_version = "3.7"
+flask = "*"
