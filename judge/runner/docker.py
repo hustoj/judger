@@ -7,10 +7,13 @@ from judge.task import Task
 
 
 class DockerExecutor(object):
-    task: Task
+    task = ''
     sandbox = ''
+    _image_name = ''
+    _command_name = ''
 
-    def execute(self, task: Task, sandbox: str):
+    def execute(self, task, sandbox):
+        # type: (Task, str) -> str
         self.task = task
         self.sandbox = sandbox
         try:
@@ -37,8 +40,17 @@ class DockerExecutor(object):
                                     mem_limit=self.mem_limit, memswap_limit=self.mem_limit,
                                     cpuset_cpus='1', ulimits=self.ulimits()
                                     )
+        client.close()
         logging.info('Task %d Docker execute finished, result: %s', self.task.task_id, ret)
         return ret
+
+    def set_command(self, name):
+        # type: (str) -> None
+        self._command_name = name
+
+    def set_image(self, name):
+        # type: (str) -> None
+        self._image_name = name
 
     def ulimits(self):
         return [
@@ -50,11 +62,11 @@ class DockerExecutor(object):
         ]
 
     def command(self):
-        return 'runner'
+        return self._command_name or 'runner'
 
     @property
     def image(self):
-        return "ubuntu:18.04"
+        return self._image_name or "runner:v1"
 
     @property
     def working_dir(self):

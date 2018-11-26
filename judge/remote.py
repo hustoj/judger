@@ -46,7 +46,6 @@ class InvalidData(BaseException):
 
 class DataResponse(object):
     def __init__(self, response):
-        print(response)
         self.data = json.loads(response)
 
     def is_valid(self):
@@ -93,8 +92,8 @@ class WebApi(object):
     def report(self, result):
         if isinstance(result, Result):
             result = result.as_dict()
-        print(result)
-        return self._client.post(self.url_manager.report, params=result)
+        logging.info("Report result %s", json.dumps(result))
+        return self._client.post(self.url_manager.report, data=result)
 
     def heartbeat(self):
         self._client.post(self.url_manager.heartbeat)

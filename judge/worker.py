@@ -56,6 +56,7 @@ class Worker(object):
 
     def _compile(self):
         logging.info('Compiling {id}'.format(id=self.task.task_id))
+
         self._report(Status.COMPILING)
         compiler = Compiler()
         compiler.compile(self.task.code, self.task.language_type)
@@ -67,6 +68,14 @@ class Worker(object):
 
     def _parse_result(self, content):
         logging.info('%d, Execute result: %s', self.task.task_id, content)
+        with open('user.out') as f:
+            user_out = f.read(MAX_USER_OUT)
+            logging.info('user out %s', user_out)
+
+        with open('user.err') as f:
+            user_out = f.read(MAX_USER_OUT)
+            logging.info('user err %s', user_out)
+
         self.result.parse_executor_output(content)
 
         if self.result.is_accept():
