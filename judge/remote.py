@@ -46,20 +46,14 @@ class InvalidData(BaseException):
 
 class DataResponse(object):
     def __init__(self, response):
+        self.origin = response
         self.data = json.loads(response)
 
     def is_valid(self):
         return 'input' in self.data and 'output' in self.data
 
-    def get_input(self):
-        if 'input' in self.data:
-            return self.data['input']
-        raise InvalidData('data request failed')
-
-    def get_output(self):
-        if 'output' in self.data:
-            return self.data['output']
-        raise InvalidData('data request failed')
+    def to_data(self):
+        return self.origin
 
 
 class WebApi(object):
@@ -87,13 +81,20 @@ class WebApi(object):
         if r.status_code != 200:
             logging.error('fetch data failed: {r}'.format(r=r.content))
             raise FetchDataFailed()
+        logging.info('fetch data of {pid}: {content}'.format(pid=pid, content=r.content[:200]))
         return DataResponse(r.content)
 
     def report(self, result):
         if isinstance(result, Result):
             result = result.as_dict()
-        logging.info("Report result %s", json.dumps(result))
+        logging.info('Report Status %s', json.dumps(result))
         return self._client.post(self.url_manager.report, data=result)
 
     def heartbeat(self):
         self._client.post(self.url_manager.heartbeat)
+
+    def close(self):
+        self._client.close()
+
+    def __del__(self):
+        self.close()

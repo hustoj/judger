@@ -1,6 +1,6 @@
 import unittest
 
-from constant import Status
+from judge.constant import Status
 from judge.remote import WebApi, UrlMaster
 from result import Result
 import requests
@@ -27,13 +27,12 @@ class TestJudgeUrl(unittest.TestCase):
 
 
 class TestWebApi(unittest.TestCase):
-    url = "http://neo.test/judge/api"
+    url = "http://212.64.56.116:8000/judge/api"
 
     def build_api(self) -> WebApi:
         cfg = {
             'url': self.url,
-            "judge_id": "test_id",
-            "code": "test_code"
+            "code": "d1553bc6-54f0-43d7-9e23-b0eeccd45341"
         }
         api = WebApi(cfg)
         api.set_client(requests.Session())
@@ -41,9 +40,9 @@ class TestWebApi(unittest.TestCase):
 
     def test_get_data(self):
         api = self.build_api()
-        result = Result.make(Status.ACCEPTED, 1111)
-        response = api.report(result)
-        print(response.content)
+        response = api.get_data(1021)
+        self.assertIn('input', response.origin)
+        self.assertIn('output', response.origin)
 
     def test_report(self):
         api = self.build_api()

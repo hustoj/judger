@@ -1,20 +1,20 @@
+import json
 import os
 import tempfile
 import unittest
 from unittest.mock import MagicMock
 
 from judge.datautils import DataManager, LocalCache
+from judge.remote import DataResponse
 
 
 class MockApi(object):
-    indata = 'test in data'
-    outdata = 'test out data'
+
+    def __init__(self, data):
+        self.data = data
 
     def get_data(self, pid):
-        return {
-            'input': self.indata,
-            'output': self.outdata
-        }
+        return DataResponse(self.data)
 
 
 class TestDataUtils(unittest.TestCase):
@@ -30,22 +30,26 @@ class TestDataUtils(unittest.TestCase):
         os.rmdir(self.path)
 
     def test_get_data(self):
-        mock = MockApi()
+        data = {
+            'input': 'test in data',
+            'output': 'test out data'
+        }
+        mock = MockApi(json.dumps(data).encode())
 
         manager = DataManager()
         local_cache = LocalCache('/tmp/ld/')
-        local_cache.write_input = MagicMock()
-        local_cache.write_output = MagicMock()
-        local_cache.get_input_data = MagicMock(return_value=mock.indata)
-        local_cache.get_output_data = MagicMock(return_value=mock.outdata)
+        local_cache.save_data = MagicMock()
+        local_cache.get_data = MagicMock(return_value=mock.get_data)
 
         manager.set_cache(local_cache)
 
-        manager.set_provider(mock)
+        manager.set_remote(mock)
         pid = 1117
-        self.assertEqual(manager.get_input(pid), mock.indata)
-        self.assertEqual(manager.get_output(pid), mock.outdata)
-        local_cache.write_input.assert_called()
-        local_cache.write_output.assert_called()
-        local_cache.get_input_data.assert_called_once()
-        local_cache.get_output_data.assert_called_once()
+        ret = manager.get_data(pid)
+        self.assertEqual(ret['input'], data['input'])
+        self.assertEqual(ret['output'], data['output'])
+        local_cache.save_data.assert_called()
+
+
+class TestLocalCache(unittest.TestCase):
+    pass

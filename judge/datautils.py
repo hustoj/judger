@@ -1,10 +1,11 @@
 #!/bin/env python3
 # coding: utf8
+import json
 import logging
 import os
 import os.path
-import shutil
 
+from .remote import DataResponse
 from .exceptions import JudgeException
 from .remote import WebApi
 
@@ -32,74 +33,62 @@ class LocalCache(object):
         self.path = path
 
     def cached(self, pid):
-        infile = self._get_data_path(pid, 'in')
-        outfile = self._get_data_path(pid, 'out')
-        if os.path.exists(infile) and os.path.exists(outfile):
+        if os.path.exists(self._get_data_path(pid)):
             return True
-
         return False
 
-    def get_input_data(self, pid):
-        path = self._get_data_path(pid, 'in')
+    def save_data(self, pid, content):
+        # type: (int, bytes) -> None
+        path = self._get_data_path(pid)
+        logging.info('write {path} data'.format(path=path))
+        write_file(path, content.decode())
 
+    def get_data(self, pid):
+        path = self._get_data_path(pid)
+        logging.info('get data of %d, %s', pid, path)
         return get_file_content(path)
 
-    def get_output_data(self, pid):
-        path = self._get_data_path(pid, 'out')
+    def _get_data_path(self, pid):
+        filename = '{pid}.json'.format(pid=pid)
 
-        return get_file_content(path)
-
-    def _get_data_path(self, pid, ext):
-        filename = '{id}.{ext}'.format(id=pid, ext=ext)
-        return os.path.join(self.path, str(pid), filename)
-
-    def _create_pid_dir(self, pid):
-        dest_dir = os.path.join(self.path, str(pid))
-        if not os.path.exists(dest_dir):
-            os.makedirs(dest_dir)
-
-    def write_input(self, pid, content):
-        self._create_pid_dir(pid)
-        path = self._get_data_path(pid, 'in')
-        write_file(path, content)
-
-    def write_output(self, pid, content):
-        self._create_pid_dir(pid)
-        path = self._get_data_path(pid, 'out')
-        write_file(path, content)
+        return os.path.join(self.path, filename)
 
 
 class DataManager(object):
-    _provider: WebApi
+    _remote: WebApi
     _cache: LocalCache
 
     def set_cache(self, cache):
         self._cache = cache
 
-    def set_provider(self, api):
-        self._provider = api
+    def set_remote(self, api):
+        self._remote = api
 
-    def _get_provider(self):
-        if self._provider is None:
-            raise InvalidRemoteApi
+    def get_data(self, pid):
+        if self.is_local_cached(pid):
+            data = self.read_data(pid)
+            return json.loads(data)
 
-        return self._provider
-
-    def _prepare(self, pid):
-        if self._cache.cached(pid):
-            return
         logging.info('Data of {pid} is not cached, will fetch from remote'.format(pid=pid))
-        response = self._provider.get_data(pid)
-        self._cache.write_input(pid, response.get_input())
-        self._cache.write_output(pid, response.get_output())
+        response = self._remote.get_data(pid)
+        self.write_data(pid, response)
 
-    def get_input(self, pid):
-        self._prepare(pid)
-        return self._cache.get_input_data(pid)
+        return json.loads(response.to_data())
 
-    def get_output(self, pid):
-        self._prepare(pid)
-        return self._cache.get_output_data(pid)
+    def read_data(self, pid):
+        return self._cache.get_data(pid)
+
+    def write_data(self, pid, response):
+        # type: (int, DataResponse) -> None
+        if self._cache:
+            self._cache.save_data(pid, response.to_data())
+
+    def is_local_cached(self, pid):
+        if self._cache:
+            return False
+        if self._cache.cached(pid):
+            return True
+        return False
 
 
 def new_data_manager(path) -> DataManager:

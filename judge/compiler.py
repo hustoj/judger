@@ -26,14 +26,14 @@ class Compiler(object):
     language_centre = ...
     language_type = ...
 
-    def _writefile(self, code):
+    def _write_code(self, code):
         f = open(self.language_type.source_name, 'w')
         f.write(code)
         f.close()
 
     def compile(self, code, language_type: LanguageType):
         self.language_type = language_type
-        self._writefile(code)
+        self._write_code(code)
         self._compile()
 
     def _compile(self):
@@ -45,7 +45,7 @@ class Compiler(object):
         try:
             (stdoutdata, stderrdata) = p.communicate()  # python 3.3 add timeout
             if stderrdata or stdoutdata:
-                logging.warning("Executor error: out => %s, err => %s", stdoutdata, stderrdata)
+                logging.warning("Compile alert: out => %s, err => %s", stdoutdata, stderrdata)
             alarm(0)
             if p.returncode != 0:
                 raise CompileException(stderrdata)

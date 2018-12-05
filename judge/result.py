@@ -1,6 +1,7 @@
 import json
 
 from judge.constant import Status
+import logging
 
 MAX_USER_OUT = 65536
 
@@ -24,11 +25,12 @@ class Result(object):
     def parse_executor_output(self, content):
         try:
             ret = json.loads(content)
-            self.result = ret['result']
-            self.time_cost = ret['time_cost']
-            self.memory_cost = ret['memory_cost']
-            self.error = open("user.error").read(MAX_USER_OUT)
+            self.result = ret['status']
+            self.time_cost = ret['time']
+            self.memory_cost = ret['memory']
+            self.error = open("user.err").read(MAX_USER_OUT)
         except FileNotFoundError as e:
+            logging.error('user.err not found')
             self.result = Status.RUNTIME_ERROR
             self.time_cost = 0
             self.memory_cost = 0

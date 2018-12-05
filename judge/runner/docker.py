@@ -9,6 +9,7 @@ from judge.task import Task
 class DockerExecutor(object):
     task = ''
     sandbox = ''
+    log_dir = ''
     _image_name = ''
     _command_name = ''
 
@@ -26,6 +27,10 @@ class DockerExecutor(object):
         return {
             self.sandbox: {
                 'bind': self.working_dir,
+                'mode': 'rw'
+            },
+            self.log_dir(): {
+                'bind': '/var/log/runner',
                 'mode': 'rw'
             }
         }
@@ -71,6 +76,9 @@ class DockerExecutor(object):
     @property
     def working_dir(self):
         return '/home/judger'
+
+    def log_dir(self):
+        return self.log_dir or '/tmp/runner/'
 
     @property
     def mem_limit(self):

@@ -15,13 +15,30 @@ from .runner.exceptions import ExecuteException, TimeLimitException
 from .task import Task
 
 
+class ResultFiles(object):
+    def get_user_out(self):
+        return self.read_file('user.out')
+
+    def get_error(self):
+        return self.read_file('user.err')
+
+    @staticmethod
+    def read_file(name):
+        with open(name) as f:
+            content = f.read(MAX_USER_OUT)
+        return content
+
+
 class Worker(object):
     data_provider: DataManager
     task: Task
     reporter: WebApi
     cfg = ...
-    environ: Environment
-    result: Result
+    environ = ...  # type: Environment
+    result = ...  # type: Result
+    files = ...  # type: ResultFiles
+    input_data = ...
+    output_data = ...
 
     def __init__(self, cfg) -> None:
         super().__init__()
@@ -38,24 +55,60 @@ class Worker(object):
         try:
             self._prepare()
             self._compile()
-            ret = self._execute()
-            self._parse_result(ret)
+            self._running()
         except CompileException as e:
-            logging.warning('{id} Compile failed: {e}'.format(id=self.task.task_id, e=e))
+            logging.warning('Task {id} Compile failed: {e}'.format(id=self.task.task_id, e=e))
             self._report(Status.COMPILE_ERROR)
         except TimeLimitException:
-            logging.error('{id} time limit in runner!!'.format(id=self.task.task_id))
+            logging.error('Task {id} time limit in runner!!'.format(id=self.task.task_id))
             self._report(Status.TIME_LIMIT)
         except ExecuteException as e:
-            logging.error('{id} Execute failed: {e}'.format(id=self.task.task_id, e=e))
+            logging.error('Task {id} Execute failed: {e}'.format(id=self.task.task_id, e=e))
             self._report(Status.RUNTIME_ERROR)
         except RuntimeError as e:
             logging.error('Catch Runtime Error: %s', e)
         finally:
             self.environ.clean()
 
+    def _running(self):
+        total = len(self.input_data)
+        current = 1
+        for case_id in self.input_data:
+            logging.info('Task %d, %d cases, current %d', self.task.task_id, total, current)
+
+            self.environ.place_user_input(self.input_data[case_id])
+
+            ret = self._execute()
+
+            logging.info('Task %d, Execute result: %s', self.task.task_id, ret)
+
+            case_result = Result()
+            case_result.parse_executor_output(ret)
+
+            if case_result.is_accept():
+                case_result.result = self._compare_user_answer(self.output_data[case_id])
+
+            self.update_result(case_result)
+
+            if not case_result.is_accept():
+                break
+
+            self.environ.prepare_for_next()
+            current += 1
+
+        self._report(self.result)
+
+    def update_result(self, case_result):
+        # type: (Result) -> None
+        if not case_result.is_accept():
+            self.result.result = case_result.result
+            return
+        if case_result.memory_cost > self.result.memory_cost:
+            self.result.memory_cost = case_result.memory_cost
+        self.result.time_cost += case_result.time_cost
+
     def _compile(self):
-        logging.info('Compiling {id}'.format(id=self.task.task_id))
+        logging.info('Compiling task {id}'.format(id=self.task.task_id))
 
         self._report(Status.COMPILING)
         compiler = Compiler()
@@ -66,29 +119,11 @@ class Worker(object):
         executor = get_executor()
         return executor.execute(self.task, self.environ.path)
 
-    def _parse_result(self, content):
-        logging.info('%d, Execute result: %s', self.task.task_id, content)
-        with open('user.out') as f:
-            user_out = f.read(MAX_USER_OUT)
-            logging.info('user out %s', user_out)
-
-        with open('user.err') as f:
-            user_out = f.read(MAX_USER_OUT)
-            logging.info('user err %s', user_out)
-
-        self.result.parse_executor_output(content)
-
-        if self.result.is_accept():
-            self.result.result = self._compare_user_answer()
-
-        self._report(self.result)
-
-    def _compare_user_answer(self):
+    def _compare_user_answer(self, standard):
         comparator = Compare()
-        with open('user.out') as f:
-            user_out = f.read(MAX_USER_OUT)
-        standard_data = self.data_provider.get_output(self.task.task_id)
-        return comparator.compare(standard_data, user_out)
+        self.files = ResultFiles()
+
+        return comparator.compare(standard, self.files.get_user_out())
 
     def _report(self, result):
         if not isinstance(result, Result):
@@ -96,11 +131,10 @@ class Worker(object):
         self.reporter.report(result)
 
     def _prepare(self):
-        logging.info('prepare environment, %d', self.task.task_id)
+        logging.info('Prepare environment for task %d', self.task.task_id)
 
-        self.environ = Environment()
-        self.environ.set_data_provider(self.data_provider)
-        self.environ.prepare(self.task)
+        self.environ = Environment(self.task)
 
-    def set_data_provider(self, provider):
-        self.data_provider = provider
+    def set_data_case(self, cases):
+        self.input_data = cases['input']
+        self.output_data = cases['output']
