@@ -10,7 +10,7 @@ from judge.log import get_logger
 class DockerExecutor(object):
     task = ''
     sandbox = ''
-    log_dir = ''
+    dir_of_log = ''
     _image_name = ''
     _command_name = ''
 
@@ -42,9 +42,9 @@ class DockerExecutor(object):
                                     network_disabled=True,
                                     read_only=True, volumes=self.volumes(),
                                     working_dir=self.working_dir,
-                                    pids_limit=self.pids_limit,
-                                    mem_limit=self.mem_limit, memswap_limit=self.mem_limit,
-                                    cpuset_cpus='1', ulimits=self.ulimits()
+                                    # pids_limit=self.pids_limit,
+                                    # mem_limit=self.mem_limit, memswap_limit=self.mem_limit,
+                                    # cpuset_cpus='1', ulimits=self.ulimits()
                                     )
         client.close()
         get_logger().info('Task %d Docker execute finished, result: %s', self.task.task_id, ret)
@@ -79,7 +79,7 @@ class DockerExecutor(object):
         return '/home/judger'
 
     def log_dir(self):
-        return self.log_dir or '/tmp/runner/'
+        return self.dir_of_log or '/tmp/runner/'
 
     @property
     def mem_limit(self):
