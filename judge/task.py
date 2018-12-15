@@ -2,6 +2,7 @@ import json
 
 import pika
 
+from . import utils
 from .language import LanguageType
 
 
@@ -23,14 +24,23 @@ class Task(object):
 
     def as_task_info(self):
         return {
-            'time_limit': self.time_limit,
-            'memory_limit': self.memory_limit,
+            'cpu': self.time_limit,
+            'memory': self.memory_limit,
             'language': self.language,
+            'output': self.output_limit,
+            'verbose': self.is_debug(),
         }
+
+    def is_debug(self):
+        return utils.is_debug()
 
     @property
     def language_type(self) -> LanguageType:
         return self._language
+
+    @property
+    def output_limit(self) -> int:
+        return 16
 
     @property
     def task_id(self):

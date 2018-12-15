@@ -1,24 +1,24 @@
 [[language]]
 language_id = 0
-source_name = "Main.c"
+source_name = "main.c"
 compile_command = "gcc"
-compile_args = ["Main.c", "-o", "Main", "-fno-asm", "-O2", "-Wall", "-lm"]
+compile_args = ["main.c", "-o", "main", "-fno-asm", "-O2", "-Wall", "-lm"]
 #, "--static"
-running_command = ["./Main"]
+running_command = ["./main"]
 running_args = ""
 
 [[language]]
 language_id = 1
-source_name = "Main.cpp"
+source_name = "main.cpp"
 compile_command = "g++"
-compile_args = ["Main.cpp", "-o", "Main", "-fno-asm", "-O2", "-Wall", "-lm", "--static"]
-running_command = ["./Main"]
+compile_args = ["main.cpp", "-o", "main", "-fno-asm", "-O2", "-Wall", "-lm", "--static"]
+running_command = ["./main"]
 running_args = ""
 
 [[language]]
 language_id = 2
-source_name = "Main.pas"
+source_name = "main.pas"
 compile_command = "fpc"
-compile_args = ["Main.pas", "-Co", "-Cr", "-Ct", "-Ci"]
-running_command = ["./Main"]
+compile_args = ["main.pas", "-Co", "-Cr", "-Ct", "-Ci"]
+running_command = ["./main"]
 running_args = ""

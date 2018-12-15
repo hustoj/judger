@@ -10,7 +10,7 @@ class TestLanguage(unittest.TestCase):
             "source_name": "Main.cpp",
             "compile_command": "g++",
             "compile_args": ["Main.cpp", "-o", "Main", "-fno-asm", "-O2", "-Wall", "-lm", "--static"],
-            "running_command": "./Main",
+            "running_command": "./main",
             "running_args": "",
         }
         language_centre = LanguageCentre({'language': [language]})
