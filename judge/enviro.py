@@ -1,10 +1,10 @@
 import json
-import logging
 import os
 import shutil
 from tempfile import mkdtemp
 
 from judge.utils import is_debug
+from judge.log import get_logger
 
 
 class Environment(object):
@@ -22,7 +22,7 @@ class Environment(object):
     def _prepare_working_dir(self):
         self.path = mkdtemp(prefix='judge_')
 
-        logging.info('Task {sid} dir is {path}'.format(sid=self.task.task_id, path=self.path))
+        get_logger().info('Task {sid} dir is {path}'.format(sid=self.task.task_id, path=self.path))
 
         os.chdir(self.path)
 
@@ -33,24 +33,24 @@ class Environment(object):
         inf.close()
 
     def write_case_config(self):
-        file = open("case.conf", "w")
+        file = open("case.json", "w")
         content = json.dumps(self.task.as_task_info())
         file.write(content)
         file.close()
 
     def prepare_for_next(self):
-        logging.info("Clear working dir for next case")
+        get_logger().info("Clear working dir for next case")
         files = ['user.in', 'user.out', 'user.err']
         for file in files:
             os.unlink(file)
 
     def clean(self):
         if self.path and not is_debug():
-            logging.info("Clean working dir {path}".format(path=self.path))
+            get_logger().info("Clean working dir {path}".format(path=self.path))
             if os.path.exists(self.path):
                 shutil.rmtree(self.path)
             else:
-                logging.warning("path is not exist!")
+                get_logger().warning("path is not exist!")
         self.restore()
 
     def restore(self):

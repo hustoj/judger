@@ -1,7 +1,7 @@
 import json
 
 from judge.constant import Status
-import logging
+from judge.log import get_logger
 
 MAX_USER_OUT = 65536
 
@@ -30,7 +30,7 @@ class Result(object):
             self.memory_cost = ret['memory']
             self.error = open("user.err").read(MAX_USER_OUT)
         except FileNotFoundError as e:
-            logging.error('user.err not found')
+            get_logger().error('user.err not found')
             self.result = Status.RUNTIME_ERROR
             self.time_cost = 0
             self.memory_cost = 0

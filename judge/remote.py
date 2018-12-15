@@ -1,9 +1,9 @@
 import json
-import logging
 
 from requests import Session
 
 from .result import Result
+from .log import get_logger
 
 
 class FetchDataFailed(Exception):
@@ -74,20 +74,21 @@ class WebApi(object):
         return header
 
     def get_data(self, pid) -> DataResponse:
-        logging.info('Fetch data of {pid}'.format(pid=pid))
+        log = get_logger()
+        log.info('Fetch data of {pid}'.format(pid=pid))
         payload = {'pid': pid}
 
         r = self._client.get(self.url_manager.data, params=payload)
         if r.status_code != 200:
-            logging.error('fetch data failed: {r}'.format(r=r.content))
+            log.error('fetch data failed: {r}'.format(r=r.content))
             raise FetchDataFailed()
-        logging.info('fetch data of {pid}: {content}'.format(pid=pid, content=r.content[:200]))
+        log.info('fetch data of {pid}: {content}'.format(pid=pid, content=r.content[:200]))
         return DataResponse(r.content)
 
     def report(self, result):
         if isinstance(result, Result):
             result = result.as_dict()
-        logging.info('Report Status %s', json.dumps(result))
+        get_logger().info('Report Status %s', json.dumps(result))
         return self._client.post(self.url_manager.report, data=result)
 
     def heartbeat(self):

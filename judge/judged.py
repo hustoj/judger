@@ -1,6 +1,5 @@
 #!/bin/env python
 # coding: utf8
-import logging
 from time import sleep, time
 
 from .config import Config
@@ -10,6 +9,7 @@ from .language import get_language_manager
 from .remote import new_api
 from .task import TaskCentre, Task
 from .worker import Worker
+from .log import get_logger
 
 
 class Judged(object):
@@ -34,7 +34,7 @@ class Judged(object):
 
             job = self.taskCenter.next_job()
             if job:
-                logging.info("New task arrive: {job}".format(job=job))
+                get_logger().info("New task arrive: {job}".format(job=job))
                 self.run_job(job)
                 self.sleep_from = time()
             else:
@@ -44,7 +44,7 @@ class Judged(object):
         current = time()
         if self.sleep_from < current - 10:
             self.sleep_from = current
-            logging.info("Task queue empty, heartbeat {duration}s".format(duration=10))
+            get_logger().info("Task queue empty, heartbeat {duration}s".format(duration=10))
 
         sleep(self.duration)
 

@@ -1,9 +1,10 @@
 #!/bin/env python3
 
 import docker
-import logging
+
 from docker.errors import ContainerError
 from judge.task import Task
+from judge.log import get_logger
 
 
 class DockerExecutor(object):
@@ -21,7 +22,7 @@ class DockerExecutor(object):
             ret = self.do_execute()
             return ret
         except ContainerError as error:
-            logging.error('Execute Failed: %s', error)
+            get_logger().error('Execute Failed: %s', error)
 
     def volumes(self):
         return {
@@ -46,7 +47,7 @@ class DockerExecutor(object):
                                     cpuset_cpus='1', ulimits=self.ulimits()
                                     )
         client.close()
-        logging.info('Task %d Docker execute finished, result: %s', self.task.task_id, ret)
+        get_logger().info('Task %d Docker execute finished, result: %s', self.task.task_id, ret)
         return ret
 
     def set_command(self, name):

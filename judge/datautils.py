@@ -1,13 +1,13 @@
 #!/bin/env python3
 # coding: utf8
 import json
-import logging
 import os
 import os.path
 
 from .remote import DataResponse
 from .exceptions import JudgeException
 from .remote import WebApi
+from .log import get_logger
 
 
 def get_file_content(path):
@@ -40,12 +40,12 @@ class LocalCache(object):
     def save_data(self, pid, content):
         # type: (int, bytes) -> None
         path = self._get_data_path(pid)
-        logging.info('write {path} data'.format(path=path))
+        get_logger().info('write {path} data'.format(path=path))
         write_file(path, content.decode())
 
     def get_data(self, pid):
         path = self._get_data_path(pid)
-        logging.info('get data of %d, %s', pid, path)
+        get_logger().info('get data of %d, %s', pid, path)
         return get_file_content(path)
 
     def _get_data_path(self, pid):
@@ -69,7 +69,7 @@ class DataManager(object):
             data = self.read_data(pid)
             return json.loads(data)
 
-        logging.info('Data of {pid} is not cached, will fetch from remote'.format(pid=pid))
+        get_logger().info('Data of {pid} is not cached, will fetch from remote'.format(pid=pid))
         response = self._remote.get_data(pid)
         self.write_data(pid, response)
 
