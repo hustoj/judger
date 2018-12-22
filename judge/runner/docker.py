@@ -41,10 +41,7 @@ class DockerExecutor(object):
         ret = client.containers.run(self.image, self.command(), auto_remove=True,
                                     network_disabled=True,
                                     read_only=True, volumes=self.volumes(),
-                                    working_dir=self.working_dir,
-                                    # pids_limit=self.pids_limit,
-                                    # mem_limit=self.mem_limit, memswap_limit=self.mem_limit,
-                                    # cpuset_cpus='1', ulimits=self.ulimits()
+                                    working_dir=self.working_dir
                                     )
         client.close()
         get_logger().info('Task %d Docker execute finished, result: %s', self.task.task_id, ret)
@@ -58,15 +55,6 @@ class DockerExecutor(object):
         # type: (str) -> None
         self._image_name = name
 
-    def ulimits(self):
-        return [
-            {
-                'Name': 'nofile',  # limit create files
-                'Soft': 10,
-                'Hard': 10,
-            }
-        ]
-
     def command(self):
         return self._command_name or 'runner'
 
@@ -76,7 +64,7 @@ class DockerExecutor(object):
 
     @property
     def working_dir(self):
-        return '/home/judger'
+        return '/data'
 
     def log_dir(self):
         return self.dir_of_log or '/tmp/runner/'
