@@ -2,7 +2,7 @@
 language_id = 0
 source_name = "main.c"
 compile_command = "gcc"
-compile_args = ["main.c", "-o", "main", "-fno-asm", "-O2", "-Wall", "-lm"]
+compile_args = ["main.c", "-o", "main", "-fno-asm", "-O2", "-Wall", "-lm", "--static", "--std=c99", "-fmax-errors=10"]
 #, "--static"
 running_command = ["./main"]
 running_args = ""
@@ -19,6 +19,6 @@ running_args = ""
 language_id = 2
 source_name = "main.pas"
 compile_command = "fpc"
-compile_args = ["main.pas", "-Co", "-Cr", "-Ct", "-Ci"]
+compile_args = ["main.pas", "-Co", "-Cr", "-Ct", "-Ci", "-Xt", "-Xi", "-O2", "-Tlinux", "-omain"]
 running_command = ["./main"]
 running_args = ""
