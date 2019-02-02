@@ -2,9 +2,7 @@
 
 import docker
 
-from docker.errors import ContainerError
 from judge.task import Task
-from judge.log import get_logger
 
 
 class DockerExecutor(object):
@@ -18,11 +16,15 @@ class DockerExecutor(object):
         # type: (Task, str) -> str
         self.task = task
         self.sandbox = sandbox
-        try:
-            ret = self.do_execute()
-            return ret
-        except ContainerError as error:
-            get_logger().error('Execute Failed: %s', error)
+
+        client = docker.from_env()
+        ret = client.containers.run(self.image, self.command(), auto_remove=True,
+                                    network_disabled=True,
+                                    read_only=True, volumes=self.volumes(),
+                                    working_dir=self.working_dir
+                                    )
+        client.close()
+        return ret
 
     def volumes(self):
         return {
@@ -35,17 +37,6 @@ class DockerExecutor(object):
                 'mode': 'rw'
             }
         }
-
-    def do_execute(self):
-        client = docker.from_env()
-        ret = client.containers.run(self.image, self.command(), auto_remove=True,
-                                    network_disabled=True,
-                                    read_only=True, volumes=self.volumes(),
-                                    working_dir=self.working_dir
-                                    )
-        client.close()
-        get_logger().info('Task %d Docker execute finished, result: %s', self.task.task_id, ret)
-        return ret
 
     def set_command(self, name):
         # type: (str) -> None

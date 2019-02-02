@@ -1,17 +1,18 @@
 #!/bin/env python
 # coding: utf8
+from docker.errors import DockerException
 
 from .comparer import Compare
 from .compiler import Compiler, CompileException
 from .constant import Status
 from .datautils import DataManager
 from .enviro import Environment
+from .exceptions import TimeLimitException, ExecuteException
+from .log import get_logger
 from .remote import WebApi
 from .result import Result, MAX_USER_OUT
 from .runner import get_executor
-from .runner.exceptions import ExecuteException, TimeLimitException
 from .task import Task
-from .log import get_logger
 
 
 class ResultFiles(object):
@@ -73,7 +74,7 @@ class Worker(object):
         total = len(self.input_data)
         current = 1
         for case_id in self.input_data:
-            get_logger().info('Task %d, %d cases, current %d', self.task.task_id, total, current)
+            get_logger().info('Task %d, case %d, total %d', self.task.task_id, current, total)
 
             self.environ.place_user_input(self.input_data[case_id])
 
@@ -120,7 +121,11 @@ class Worker(object):
     def _execute(self):
         get_logger().info('Executing {id} @ {path}'.format(id=self.task.task_id, path=self.environ.path))
         executor = get_executor()
-        return executor.execute(self.task, self.environ.path)
+        try:
+            return executor.execute(self.task, self.environ.path)
+        except DockerException as err:
+            get_logger().error('Docker Exception:', err)
+            exit(1)
 
     def _compare_user_answer(self, standard):
         comparator = Compare()

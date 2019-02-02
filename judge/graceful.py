@@ -14,3 +14,7 @@ class GracefulKiller:
     def exit_gracefully(self, signum, frame):
         get_logger().info('Judged receive signal, graceful exit...')
         self.stop = True
+
+    @property
+    def should_stop(self):
+        return self.stop

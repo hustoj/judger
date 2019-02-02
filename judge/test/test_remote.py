@@ -2,7 +2,7 @@ import unittest
 
 from judge.constant import Status
 from judge.remote import WebApi, UrlMaster
-from result import Result
+from judge.result import Result
 import requests
 
 
@@ -41,8 +41,8 @@ class TestWebApi(unittest.TestCase):
     def test_get_data(self):
         api = self.build_api()
         response = api.get_data(1021)
-        self.assertIn('input', response.origin)
-        self.assertIn('output', response.origin)
+        self.assertIn('input', str(response.origin))
+        self.assertIn('output', str(response.origin))
 
     def test_report(self):
         api = self.build_api()

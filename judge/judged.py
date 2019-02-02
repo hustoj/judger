@@ -6,16 +6,18 @@ from .config import Config
 from .datautils import new_data_manager
 from .graceful import GracefulKiller
 from .language import get_language_manager
+from .log import get_logger
 from .remote import new_api
 from .task import TaskCentre, Task
 from .worker import Worker
-from .log import get_logger
+
+logger = get_logger()
 
 
 class Judged(object):
     cfg = ...
     duration = 0.2
-    sleep_from = 0
+    idle_from = 0
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
@@ -27,33 +29,38 @@ class Judged(object):
         self.data_provider.set_remote(self.api)
 
     def run(self):
-        self.sleep_from = time()
+        self.idle_mark()
         while True:
-            if self.killer.stop:
+            if self.killer.should_stop:
                 break
 
             job = self.taskCenter.next_job()
             if job:
-                get_logger().info("New task arrive: {job}".format(job=job))
-                self.run_job(job)
-                self.sleep_from = time()
+                logger.info("New task arrive: {job}".format(job=job))
+                task = Task.from_json(job)
+                task.set_language(self.get_language(task.language))
+                self.process_task(task)
+                self.idle_mark()
             else:
-                self.have_a_rest()
+                self.take_rest()
 
-    def have_a_rest(self):
+    def get_language(self, language):
+        return self.langCentre.get_language(language)
+
+    def idle_mark(self):
+        self.idle_from = time()
+
+    def take_rest(self):
         current = time()
-        if self.sleep_from < current - 10:
-            self.sleep_from = current
-            get_logger().info("Task queue empty, heartbeat {duration}s".format(duration=10))
+        if self.idle_from < current - 10:
+            self.idle_from = current
+            logger.info("Task queue empty, heartbeat {duration}s".format(duration=10))
 
         sleep(self.duration)
 
-    def run_job(self, job):
-        task = Task.from_json(job)
-        task.set_language(self.langCentre.get_language(task.language))
-
+    def process_task(self, task):
         worker = self.get_worker()
-        worker.set_data_case(self.data_provider.get_data(task.problem_id))
+        worker.set_data_case(self.get_data(task.problem_id))
         worker.process(task)
 
     def get_worker(self):
@@ -61,3 +68,6 @@ class Judged(object):
         worker.set_reporter(self.api)
 
         return worker
+
+    def get_data(self, problem_id):
+        return self.data_provider.get_data(problem_id)

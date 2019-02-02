@@ -1,5 +1,3 @@
-import logging
-
 from judge import pid
 
 from judge import judged
