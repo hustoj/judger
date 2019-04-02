@@ -2,8 +2,8 @@ import json
 
 from requests import Session
 
-from .result import Result
-from .log import get_logger
+from judge.log import get_logger
+from judge.runner import CaseResult
 
 
 class FetchDataFailed(Exception):
@@ -86,7 +86,7 @@ class WebApi(object):
         return DataResponse(r.content)
 
     def report(self, result):
-        if isinstance(result, Result):
+        if isinstance(result, CaseResult):
             result = result.as_dict()
         get_logger().info('Report Status %s', json.dumps(result))
         return self._client.post(self.url_manager.report, data=result)

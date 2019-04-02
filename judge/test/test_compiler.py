@@ -4,21 +4,20 @@ import unittest
 
 from judge.compiler import Compiler
 from judge.language import LanguageType
+from task import Task
 
 
 class TestCompiler(unittest.TestCase):
-    tmp_dir = ...
-    current_dir = ...
-
     def setUp(self):
-        self.current_dir = os.getcwd()
+        self.init_dir = os.getcwd()
         self.tmp_dir = tempfile.mkdtemp(prefix="tc")
 
     def tearDown(self):
-        if os.getcwd() == self.current_dir:
+        if os.getcwd() == self.init_dir:
             return
         os.system('rm -rf *')
         os.rmdir(self.tmp_dir)
+        os.chdir(self.init_dir)
 
     def testCompileC(self):
         code = """
@@ -31,9 +30,17 @@ int main(){
 }
 """
         os.chdir(self.tmp_dir)
+        f = open('source.c', 'w')
+        f.write(code)
+        f.close()
+
         language_type = self._get_language_type()
         compiler = Compiler()
-        compiler.compile(code, language_type)
+        task = Task()
+        task.working_dir = self.tmp_dir
+        info = {'time_limit': 1, 'memory_limit': 2, 'solution_id': 3}
+        task.set_info(info)
+        compiler.execute(task)
         self.assertTrue(os.path.isfile(language_type.source_name))
         self.assertTrue(os.path.isfile("Main"))
 

@@ -1,12 +1,12 @@
 import unittest
 
 from judge.constant import Status
-from judge.result import Result
+from runner import CaseResult
 
 
 class TestResult(unittest.TestCase):
     def testParse(self):
-        result = Result.make(Status.ACCEPTED, 22)
+        result = CaseResult.make(Status.ACCEPTED, 22)
         d = result.as_dict()
 
         self.assertEqual(d['result'], Status.ACCEPTED)

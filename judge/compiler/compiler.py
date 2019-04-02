@@ -3,7 +3,9 @@
 import subprocess
 from signal import alarm, signal, SIGALRM
 
-from judge.language import LanguageType
+from docker.errors import DockerException
+
+from judge.container.compiler import Compiler
 from judge.log import get_logger
 
 MAX_COMPILE_TIME = 3
@@ -21,19 +23,33 @@ def alarm_handler(signum, frame):
     raise Alarm
 
 
-class Compiler(object):
-    language = None
-    language_centre = ...
+class CompilerMaster(object):
+    def compile(self, task):
+        """
+        :param judge.task.Task task:
+        :return:
+        """
+        try:
+            compiler = Compiler()
+            compiler.execute(task)
+            get_logger().info('Compiler: Task %d finished, result: %s', task.task_id, compiler.get_status())
+            get_logger().info('Compiler stdout: %s', compiler.get_stdout())
+            # todo: check target is ok
+            # self.check_result(task.language_type.target_name)
+        except DockerException as err:
+            get_logger().error('Docker Exception:', err)
+
+    # def check_result(self, name):
+    #     if os.file_exist():
+    #         return True
+    #     return false
+
+
+class Compiler2(object):
     language_type = ...
 
-    def _write_code(self, code):
-        f = open(self.language_type.source_name, 'w')
-        f.write(code)
-        f.close()
-
-    def compile(self, code, language_type: LanguageType):
-        self.language_type = language_type
-        self._write_code(code)
+    def compile(self, task):
+        self.language_type = task.language_type
         self._compile()
 
     def _compile(self):

@@ -1,6 +1,6 @@
 import signal
 
-from .log import get_logger
+from judge.log import get_logger
 
 
 class GracefulKiller:

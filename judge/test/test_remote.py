@@ -1,9 +1,10 @@
 import unittest
 
+import requests
+
 from judge.constant import Status
 from judge.remote import WebApi, UrlMaster
-from judge.result import Result
-import requests
+from runner import CaseResult
 
 
 class TestJudgeUrl(unittest.TestCase):
@@ -46,6 +47,6 @@ class TestWebApi(unittest.TestCase):
 
     def test_report(self):
         api = self.build_api()
-        result = Result.make(Status.ACCEPTED, 1111)
+        result = CaseResult.make(Status.ACCEPTED, 1111)
         response = api.report(result)
         print(response.content)

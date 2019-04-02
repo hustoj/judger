@@ -2,13 +2,13 @@ import json
 
 import pika
 
-from . import utils
-from .language import LanguageType
+from judge.language import LanguageType, get_language
 
 
 class Task(object):
     _info = ...
     _language = ...
+    working_dir = ...
 
     @staticmethod
     def from_json(content):
@@ -22,21 +22,9 @@ class Task(object):
     def set_language(self, language):
         self._language = language
 
-    def as_task_info(self):
-        return {
-            'cpu': self.time_limit,
-            'memory': self.memory_limit,
-            'language': self.language,
-            'output': self.output_limit,
-            'verbose': self.is_debug(),
-        }
-
-    def is_debug(self):
-        return utils.is_debug()
-
     @property
     def language_type(self) -> LanguageType:
-        return self._language
+        return get_language(self.language)
 
     @property
     def output_limit(self) -> int:
@@ -100,7 +88,7 @@ class TaskCentre(object):
 
         return self._channel
 
-    def next_job(self):
+    def get_job(self):
         channel = self.get_channel()
         method_frame, header_frame, body = channel.basic_get(self._config['queue'])
         if method_frame:

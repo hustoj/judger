@@ -1,6 +1,3 @@
-#!/bin/env python3
-# coding: utf8
-
 import argparse
 import os
 
@@ -13,7 +10,3 @@ def parse_arguments():
 
 def is_debug():
     return bool(os.getenv('JUDGE_DEBUG'))
-
-
-if __name__ == '__main__':
-    pass

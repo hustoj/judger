@@ -1,7 +1,6 @@
-from judge import pid
 
 from judge import judged
-from judge.utils import parse_arguments
+from judge.utils import parse_arguments, pid
 from judge.log import setup_logger
 from judge.config import load_config
 

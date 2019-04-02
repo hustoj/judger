@@ -1,6 +1,6 @@
 import logging
 
-from .utils import is_debug
+from judge.utils import is_debug
 
 
 def get_logger() -> logging.Logger:

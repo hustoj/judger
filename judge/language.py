@@ -1,4 +1,5 @@
 import toml
+
 from .log import get_logger
 
 
@@ -15,6 +16,12 @@ class LanguageType(object):
     def get_running_args(self):
         return self.running_args
 
+    def to_compile_info(self):
+        return {
+            "command": self.compile_command,
+            "args": ' '.join(self.compile_args),
+        }
+
     def get_compile_args(self):
         return self.compile_args
 
@@ -28,11 +35,21 @@ class LanguageNotExist(Exception):
     pass
 
 
-def get_language_manager():
-    languages = toml.load('languages.toml')
-    centre = LanguageCentre(languages)
+language_manager = None
 
-    return centre
+
+def load_languages():
+    global language_manager
+    languages = toml.load('languages.toml')
+    language_manager = LanguageCentre(languages)
+
+
+def get_language(language_id):
+    global language_manager
+    if language_manager is None:
+        load_languages()
+
+    return language_manager.get_language(language_id)
 
 
 class LanguageCentre(object):

@@ -6,7 +6,7 @@ from judge.log import get_logger
 MAX_USER_OUT = 65536
 
 
-class Result(object):
+class CaseResult(object):
     solution_id = ...
     result = Status.ACCEPTED
     time_cost = 0
@@ -16,26 +16,45 @@ class Result(object):
 
     @staticmethod
     def make(result, task_id):
-        instance = Result()
+        instance = CaseResult()
         instance.solution_id = task_id
         instance.result = result
 
         return instance
 
-    def parse_executor_output(self, content):
+    @classmethod
+    def parse_runner(cls, content):
+        ret = json.loads(content)
+        self = cls()
+        self.result = ret['status']
+        self.time_cost = ret['time']
+        self.memory_cost = ret['memory']
+
+        return self
+
+    def update_by_case(self, case):
+        # type: (CaseResult) -> None
+        if not case.is_ok():
+            self.result = case.result
+            return
+        self.update_cost(case)
+
+    def update_cost(self, case):
+        # type: (CaseResult) -> None
+        if case.memory_cost > self.memory_cost:
+            self.memory_cost = case.memory_cost
+        self.time_cost += case.time_cost
+
+    def get_error(self):
         try:
-            ret = json.loads(content)
-            self.result = ret['status']
-            self.time_cost = ret['time']
-            self.memory_cost = ret['memory']
-            self.error = open("user.err").read(MAX_USER_OUT)
+            return open("user.err").read(MAX_USER_OUT)
         except FileNotFoundError as e:
             get_logger().error('user.err not found')
             self.result = Status.RUNTIME_ERROR
             self.time_cost = 0
             self.memory_cost = 0
 
-    def is_accept(self):
+    def is_ok(self):
         return Status.is_accept(self.result)
 
     def as_dict(self):

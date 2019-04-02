@@ -4,7 +4,8 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock
 
-from judge.datautils import DataManager, LocalCache
+from data.cache import LocalCache
+from data.manager import DataManager
 from judge.remote import DataResponse
 
 
