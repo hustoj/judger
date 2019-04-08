@@ -1,8 +1,8 @@
 import json
 
 from judge.data.cache import LocalCache
-from judge.log import get_logger
 from judge.remote import WebApi, DataResponse
+from judge.utils.log import logger
 
 
 class DataManager(object):
@@ -20,7 +20,7 @@ class DataManager(object):
             data = self.read_data(pid)
             return json.loads(data)
 
-        get_logger().info('Data of {pid} is not cached, will fetch from remote'.format(pid=pid))
+        logger().info('Data of {pid} is not cached, will fetch from remote'.format(pid=pid))
         response = self._remote.get_data(pid)
         self.write_data(pid, response)
 

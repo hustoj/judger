@@ -1,6 +1,6 @@
 import os
 
-from judge.log import get_logger
+from judge.utils.log import logger
 
 
 def get_file_content(path):
@@ -29,12 +29,12 @@ class LocalCache(object):
     def save_data(self, pid, content):
         # type: (int, bytes) -> None
         path = self._get_data_path(pid)
-        get_logger().info('write {path} data'.format(path=path))
+        logger().info('write {path} data'.format(path=path))
         write_file(path, content.decode())
 
     def get_data(self, pid):
         path = self._get_data_path(pid)
-        get_logger().info('get data of %d, %s', pid, path)
+        logger().info('get data of %d, %s', pid, path)
         return get_file_content(path)
 
     def _get_data_path(self, pid):

@@ -3,9 +3,9 @@ import os
 import shutil
 from tempfile import mkdtemp
 
-from judge.log import get_logger
 from judge.runner import CaseConfig
 from judge.utils import is_debug
+from judge.utils.log import logger
 
 
 class Environment(object):
@@ -24,7 +24,7 @@ class Environment(object):
     def _prepare_working_dir(self):
         self.path = mkdtemp(prefix='judge_')
 
-        get_logger().info('Task {sid} dir is {path}'.format(sid=self.task.task_id, path=self.path))
+        logger().info('Task {sid} dir is {path}'.format(sid=self.task.task_id, path=self.path))
 
         os.chdir(self.path)
 
@@ -47,7 +47,7 @@ class Environment(object):
         config.write_to_file()
 
     def prepare_for_next(self):
-        get_logger().info("Clear working dir for next case")
+        logger().info("Clear working dir for next case")
         files = ['user.in', 'user.out', 'user.err']
         for file in files:
             if os.path.exists(file):
@@ -55,11 +55,11 @@ class Environment(object):
 
     def clean(self):
         if self.path and not is_debug():
-            get_logger().info("Clean working dir {path}".format(path=self.path))
+            logger().info("Clean working dir {path}".format(path=self.path))
             if os.path.exists(self.path):
                 shutil.rmtree(self.path)
             else:
-                get_logger().warning("path is not exist!")
+                logger().warning("path is not exist!")
         self.restore()
 
     def restore(self):

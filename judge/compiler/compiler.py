@@ -6,7 +6,7 @@ from signal import alarm, signal, SIGALRM
 from docker.errors import DockerException
 
 from judge.container.compiler import Compiler
-from judge.log import get_logger
+from judge.utils.log import logger
 
 MAX_COMPILE_TIME = 3
 
@@ -32,12 +32,12 @@ class CompilerMaster(object):
         try:
             compiler = Compiler()
             compiler.execute(task)
-            get_logger().info('Compiler: Task %d finished, result: %s', task.task_id, compiler.get_status())
-            get_logger().info('Compiler stdout: %s', compiler.get_stdout())
+            logger().info('Compiler: Task %d finished, result: %s', task.task_id, compiler.get_status())
+            logger().info('Compiler stdout: %s', compiler.get_stdout())
             # todo: check target is ok
             # self.check_result(task.language_type.target_name)
         except DockerException as err:
-            get_logger().error('Docker Exception:', err)
+            logger().error('Docker Exception:', err)
 
     # def check_result(self, name):
     #     if os.file_exist():
@@ -54,7 +54,7 @@ class Compiler2(object):
 
     def _compile(self):
         args = self.language_type.full_compile_command()
-        logger = get_logger()
+        logger = logger()
         logger.debug('Compile task use {args}'.format(args=args))
         p = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         signal(SIGALRM, alarm_handler)

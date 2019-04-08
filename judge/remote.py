@@ -2,8 +2,8 @@ import json
 
 from requests import Session
 
-from judge.log import get_logger
 from judge.runner import CaseResult
+from judge.utils.log import logger
 
 
 class FetchDataFailed(Exception):
@@ -74,7 +74,7 @@ class WebApi(object):
         return header
 
     def get_data(self, pid) -> DataResponse:
-        log = get_logger()
+        log = logger()
         log.info('Fetch data of {pid}'.format(pid=pid))
         payload = {'pid': pid}
 
@@ -88,7 +88,7 @@ class WebApi(object):
     def report(self, result):
         if isinstance(result, CaseResult):
             result = result.as_dict()
-        get_logger().info('Report Status %s', json.dumps(result))
+        logger().info('Report Status %s', json.dumps(result))
         return self._client.post(self.url_manager.report, data=result)
 
     def heartbeat(self):

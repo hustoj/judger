@@ -1,7 +1,7 @@
 import json
 
 from judge.constant import Status
-from judge.log import get_logger
+from judge.utils.log import logger
 
 MAX_USER_OUT = 65536
 
@@ -49,7 +49,7 @@ class CaseResult(object):
         try:
             return open("user.err").read(MAX_USER_OUT)
         except FileNotFoundError as e:
-            get_logger().error('user.err not found')
+            logger().error('user.err not found')
             self.result = Status.RUNTIME_ERROR
             self.time_cost = 0
             self.memory_cost = 0

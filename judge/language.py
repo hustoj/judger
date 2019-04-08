@@ -1,6 +1,6 @@
 import toml
 
-from .log import get_logger
+from judge.utils.log import logger
 
 
 class LanguageType(object):
@@ -72,5 +72,5 @@ class LanguageCentre(object):
     def get_language(self, language_id) -> LanguageType:
         if language_id in self._languages:
             return self._languages[language_id]
-        get_logger().info('Language id not exist: {id}'.format(id=language_id))
+        logger().info('Language id not exist: {id}'.format(id=language_id))
         raise LanguageNotExist()

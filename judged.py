@@ -1,7 +1,8 @@
 
-from judge import judged
-from judge.utils import parse_arguments, pid
-from judge.log import setup_logger
+from judge import Judged
+from judge.utils import parse_arguments
+from judge.libs import pid
+from judge.utils.log import setup_logger
 from judge.config import load_config
 
 
@@ -14,7 +15,7 @@ def main():
     log.info('Judged Starting...')
 
     with pid.PIDFile(cfg.judged['pid_file']):
-        judge = judged.Judged(cfg)
+        judge = Judged(cfg)
         judge.run()
 
 
