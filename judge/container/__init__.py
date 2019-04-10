@@ -15,15 +15,16 @@ class DockerExecutor(object):
     status = ...
     stdout = ''
     stderr = ''
+    sandbox = ''
     container = ...  # type: Container
 
     def __init__(self) -> None:
         super().__init__()
         self._working_dir = '/data'
 
-    def execute(self, task):
-        # type: (Task) -> None
-        self.task = task
+    def execute(self, work_dir):
+        # type: (str) -> None
+        self.sandbox = work_dir
         client = docker.from_env()
         self.container = client.containers.run(self.image, self.command(), auto_remove=True,
                                                network_disabled=True, detach=True,
@@ -46,14 +47,6 @@ class DockerExecutor(object):
 
     def get_stderr(self):
         return self.stderr
-
-    @property
-    def sandbox(self):
-        """
-        get outer working sandbox dir
-        :return: str
-        """
-        return self.task.working_dir
 
     def volumes(self):
         return {

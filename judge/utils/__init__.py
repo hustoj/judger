@@ -10,3 +10,8 @@ def parse_arguments():
 
 def is_debug():
     return bool(os.getenv('JUDGE_DEBUG'))
+
+
+def write_file(name, content):
+    with open(name, 'w') as f:
+        f.write(content)

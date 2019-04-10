@@ -13,7 +13,7 @@ sys.path.append('.')
 def run(task):
     # type: (Task) -> None
     executor = Runner()
-    executor.execute(task)
+    executor.execute(task.working_dir)
     print(executor.is_ok())
     print(executor.get_stdout())
     print(executor.get_status())

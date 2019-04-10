@@ -7,6 +7,7 @@ class LanguageType(object):
     source_name = ''
     compile_command = ''
     running_command = ''
+    execute_name = ''
     compile_args = []
     running_args = []
 
@@ -44,7 +45,7 @@ def load_languages():
     language_manager = LanguageCentre(languages)
 
 
-def get_language(language_id):
+def get_language(language_id) -> LanguageType:
     global language_manager
     if language_manager is None:
         load_languages()
@@ -63,6 +64,7 @@ class LanguageCentre(object):
             language_type = LanguageType()
             language_type.source_name = lang['source_name']
             language_type.compile_command = lang['compile_command']
+            language_type.execute_name = lang['execute_name']
             language_type.compile_args = lang['compile_args']
             language_type.running_command = lang['running_command']
             language_type.running_args = lang['running_args']

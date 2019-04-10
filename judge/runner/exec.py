@@ -17,7 +17,7 @@ class Execution(object):
 
         try:
             runner = Runner()
-            runner.execute(task)
+            runner.execute(task.working_dir)
             logger().info('Executor: Task %d finished, result: %s', task.task_id, runner.get_status())
             if not runner.is_ok():
                 raise ExecuteException(runner.get_status(), runner.get_stdout(), runner.get_stderr())

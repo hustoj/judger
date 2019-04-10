@@ -31,7 +31,7 @@ class CompilerMaster(object):
         """
         try:
             compiler = Compiler()
-            compiler.execute(task)
+            compiler.execute(task.working_dir)
             logger().info('Compiler: Task %d finished, result: %s', task.task_id, compiler.get_status())
             logger().info('Compiler stdout: %s', compiler.get_stdout())
             # todo: check target is ok
