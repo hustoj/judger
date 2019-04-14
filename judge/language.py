@@ -10,6 +10,7 @@ class LanguageType(object):
     execute_name = ''
     compile_args = []
     running_args = []
+    memory = 512
 
     def __init__(self):
         pass
@@ -21,6 +22,7 @@ class LanguageType(object):
         return {
             "command": self.compile_command,
             "args": ' '.join(self.compile_args),
+            "memory": self.memory,
         }
 
     def get_compile_args(self):
@@ -68,6 +70,8 @@ class LanguageCentre(object):
             language_type.compile_args = lang['compile_args']
             language_type.running_command = lang['running_command']
             language_type.running_args = lang['running_args']
+            if 'memory' in lang:
+                language_type.memory = lang['memory']
 
             self._languages[lang['language_id']] = language_type
 
