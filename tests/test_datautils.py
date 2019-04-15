@@ -20,14 +20,17 @@ class MockApi(object):
 
 class TestDataUtils(unittest.TestCase):
     path = None
+    init_dir = None
     work_dir = None
 
     def setUp(self):
+        self.init_dir = os.getcwd()
         self.path = tempfile.mkdtemp(prefix="td_")
 
     def tearDown(self):
         os.chdir(self.path)
         os.system("rm -rf *")
+        os.chdir(self.init_dir)
         os.rmdir(self.path)
 
     def test_get_data(self):

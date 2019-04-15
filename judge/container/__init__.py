@@ -8,7 +8,7 @@ class DockerExecutor(object):
     task = ...
     dir_of_log = ''
     _image_name = ''
-    _command_name = ''
+    _command_name = None
     _working_dir = ''
     status = ...
     stdout = ''

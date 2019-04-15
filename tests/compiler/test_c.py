@@ -4,13 +4,12 @@ import tempfile
 import unittest
 
 from judge.compiler.compiler import Compiler
-from judge.language import get_language, load_languages
+from judge.language import get_language
 from judge.utils import write_file
 
 
 class TestC(unittest.TestCase):
     def setUp(self):
-        load_languages()
         self.init_dir = os.getcwd()
         self.tmp_dir = tempfile.mkdtemp(prefix="tc")
         # print(self.tmp_dir)
