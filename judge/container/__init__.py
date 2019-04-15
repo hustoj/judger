@@ -3,8 +3,6 @@
 import docker
 from docker.models.containers import Container
 
-from judge.task import Task
-
 
 class DockerExecutor(object):
     task = ...

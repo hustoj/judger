@@ -9,11 +9,11 @@ from judge.remote import WebApi
 from judge.runner import CaseResult
 from judge.runner.exec import Execution
 from judge.task import Task
+from judge.utils.log import logger
 from judge.worker.comparer import Compare
 from judge.worker.enviro import Environment
 from judge.worker.exceptions import TimeLimitException, ExecuteException
 from judge.worker.result import ResultFiles
-from judge.utils.log import logger
 
 
 class Worker(object):

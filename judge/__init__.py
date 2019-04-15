@@ -8,8 +8,8 @@ from judge.language import load_languages
 from judge.libs.graceful import GracefulKiller
 from judge.remote import new_api
 from judge.task import TaskCentre, Task
-from judge.worker import Worker
 from judge.utils.log import logger
+from judge.worker import Worker
 
 logger = logger()
 

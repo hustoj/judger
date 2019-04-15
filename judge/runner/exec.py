@@ -2,9 +2,9 @@ from docker.errors import DockerException
 
 from judge.container.runner import Runner
 from judge.runner.result import CaseResult
+from judge.utils.log import logger
 from judge.worker.enviro import Environment
 from judge.worker.exceptions import ExecuteException
-from judge.utils.log import logger
 
 
 class Execution(object):
