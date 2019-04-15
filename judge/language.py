@@ -43,14 +43,13 @@ language_manager = None
 
 def load_languages():
     global language_manager
-    languages = toml.load('languages.toml')
-    language_manager = LanguageCentre(languages)
+    if language_manager is None:
+        languages = toml.load('languages.toml')
+        language_manager = LanguageCentre(languages)
 
 
 def get_language(language_id) -> LanguageType:
-    global language_manager
-    if language_manager is None:
-        load_languages()
+    load_languages()
 
     return language_manager.get_language(language_id)
 
