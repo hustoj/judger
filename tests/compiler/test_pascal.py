@@ -1,12 +1,19 @@
 import os
 
 from judge.language import get_language
-from .test_c import TestC
+from tests.compiler import TestC
 
 
 class TestPascal(TestC):
+    language_id = 2
+
     def testCompile(self):
-        code = '''
+        language_type = get_language(self.language_id)
+        self.do_compile(language_type)
+        self.assertCompileResult(language_type)
+
+    def get_code(self):
+        return '''
 program p1001(Input,Output);
 var
   a,b:Integer;
@@ -18,11 +25,6 @@ begin
      end;
 end.
 '''
-        os.chdir(self.tmp_dir)
-        language_type = get_language(2)
-        self.prepare(code, language_type)
-
-        self.assertCompileResult(language_type)
 
     def assertCompileResult(self, language_type):
         self.assertTrue(os.path.isfile('compile.out'))

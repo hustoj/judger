@@ -1,28 +1,23 @@
-import json
 import os
-import tempfile
-import unittest
 
-from judge.compiler.compiler import Compiler
 from judge.language import get_language
-from judge.utils import write_file
+from tests.compiler.case import CaseScaffold
 
 
-class TestC(unittest.TestCase):
-    def setUp(self):
-        self.init_dir = os.getcwd()
-        self.tmp_dir = tempfile.mkdtemp(prefix="tc")
-        # print(self.tmp_dir)
+class TestC(CaseScaffold):
+    language_id = 0
 
-    def tearDown(self):
-        if os.getcwd() == self.init_dir:
-            return
-        os.system('rm -rf *')
-        os.chdir(self.init_dir)
-        os.rmdir(self.tmp_dir)
+    def do_compile(self, language_type):
+        os.chdir(self.tmp_dir)
+        self.compileCode(self.get_code(), language_type)
 
-    def testCompileC(self):
-        code = """
+    def testC(self):
+        language_type = get_language(self.language_id)
+        self.do_compile(language_type)
+        self.assertCompileResult(language_type)
+
+    def get_code(self):
+        return """
 #include <stdio.h>
 int main(){
     int a,b;
@@ -31,23 +26,6 @@ int main(){
     return 0;
 }
 """
-        os.chdir(self.tmp_dir)
-        language_type = get_language(0)
-        self.prepare(code, language_type)
-
-        self.assertCompileResult(language_type)
-
-    def prepare(self, code, language_type):
-        os.chdir(self.tmp_dir)
-
-        write_file(language_type.source_name, code)
-
-        write_file('compile.json', json.dumps(language_type.to_compile_info()))
-
-        compiler = Compiler()
-
-        compiler.execute(self.tmp_dir)
-        self.assertCompileResult(language_type)
 
     def assertCompileResult(self, language_type):
         self.assertTrue(os.path.isfile('compile.out'))
