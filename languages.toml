@@ -1,0 +1,37 @@
+[[language]]
+language_id = 0
+source_name = "main.c"
+compile_command = "gcc"
+execute_name = "main"
+compile_args = ["main.c", "-o", "main", "-fno-asm", "-O2", "-Wall", "-lm", "--static", "--std=c99", "-fmax-errors=10"]
+#, "--static"
+running_command = ["./main"]
+running_args = ""
+
+[[language]]
+language_id = 1
+source_name = "main.cpp"
+compile_command = "g++"
+execute_name = "main"
+compile_args = ["main.cpp", "-o", "main", "-fno-asm", "-O2", "-Wall", "-lm", "--static"]
+running_command = ["./main"]
+running_args = ""
+
+[[language]]
+language_id = 2
+source_name = "main.pas"
+compile_command = "fpc"
+compile_args = ["main.pas", "-Co", "-Cr", "-Ct", "-Ci", "-Xt", "-Xi", "-O2", "-Tlinux", "-omain"]
+execute_name = "main"
+running_command = ["./main"]
+running_args = ""
+
+[[language]]
+language_id = 3
+source_name = "Main.java"
+compile_command = "javac"
+compile_args = ["-J-XX:-UseCompressedClassPointers", "Main.java"]
+execute_name = "Main.class"
+running_command = ["/usr/bin/java", "Main"]
+running_args = ""
+memory = 2048
