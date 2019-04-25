@@ -11,11 +11,11 @@ judge_id = "1"
 code = "d1553bc6-54f0-43d7-9e23-b0eeccd45341"
 
 [mq]
-host = "212.64.56.116"
+host = "host"
 port = 5672
 db = "hustoj"
 username = "hustoj"
-password = "zCyp4egUjqF0"
+password = "password"
 queue = "hustoj"
 vhost = "/"
 routing_key = "hustoj"
