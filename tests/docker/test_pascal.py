@@ -1,16 +1,19 @@
 import os
 
 from judge.language import get_language
-from tests.compiler import TestC
+from tests.docker.case import CaseScaffold
 
 
-class TestPascal(TestC):
+class TestPascal(CaseScaffold):
     language_id = 2
 
-    def testCompile(self):
+    def test_pascal(self):
         language_type = get_language(self.language_id)
-        self.do_compile(language_type)
+        self.compile_code(self.get_code(), language_type)
         self.assertCompileResult(language_type)
+
+        self.execute(language_type)
+        self.assertExecuteResult()
 
     def get_code(self):
         return '''
