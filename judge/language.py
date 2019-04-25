@@ -4,6 +4,7 @@ from judge.utils.log import logger
 
 
 class LanguageType(object):
+    language_id = 0
     source_name = ''
     compile_command = ''
     running_command = ''
@@ -63,6 +64,7 @@ class LanguageCentre(object):
     def load(self, languages):
         for lang in languages['language']:
             language_type = LanguageType()
+            language_type.language_id = lang['language_id']
             language_type.source_name = lang['source_name']
             language_type.compile_command = lang['compile_command']
             language_type.execute_name = lang['execute_name']

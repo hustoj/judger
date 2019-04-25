@@ -32,6 +32,6 @@ source_name = "Main.java"
 compile_command = "javac"
 compile_args = ["-J-XX:-UseCompressedClassPointers", "Main.java"]
 execute_name = "Main.class"
-running_command = ["java Main"]
+running_command = ["/usr/bin/java", "Main"]
 running_args = ""
 memory = 2048
