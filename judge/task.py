@@ -6,21 +6,16 @@ from judge.language import LanguageType, get_language
 
 
 class Task(object):
-    _info = ...
-    _language = ...
-    working_dir = ...
+    info = ...
 
     @staticmethod
     def from_json(content):
         task = Task()
-        task.set_info(json.loads(content))
+        task.load(json.loads(content))
         return task
 
-    def set_info(self, info):
-        self._info = info
-
-    def set_language(self, language):
-        self._language = language
+    def load(self, info):
+        self.info = info
 
     @property
     def language_type(self) -> LanguageType:
@@ -32,7 +27,7 @@ class Task(object):
 
     @property
     def task_id(self):
-        return self._info['solution_id']
+        return self.info['solution_id']
 
     @property
     def running_command(self):
@@ -40,27 +35,27 @@ class Task(object):
 
     @property
     def problem_id(self):
-        return self._info['problem_id']
+        return self.info['problem_id']
 
     @property
     def language(self):
-        return self._info['language']
+        return self.info['language']
 
     @property
     def is_special(self):
-        return self._info['is_special']
+        return self.info['is_special']
 
     @property
     def code(self):
-        return self._info['code']
+        return self.info['code']
 
     @property
     def time_limit(self):
-        return self._info['time_limit']
+        return self.info['time_limit']
 
     @property
     def memory_limit(self):
-        return self._info['memory_limit']
+        return self.info['memory_limit']
 
 
 class TaskCentre(object):

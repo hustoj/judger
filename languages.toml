@@ -7,6 +7,8 @@ compile_args = ["main.c", "-o", "main", "-fno-asm", "-O2", "-Wall", "-lm", "--st
 #, "--static"
 running_command = ["./main"]
 running_args = ""
+compile_image = "compiler:v1"
+running_image = "runner:v1"
 
 [[language]]
 language_id = 1
@@ -16,6 +18,8 @@ execute_name = "main"
 compile_args = ["main.cpp", "-o", "main", "-fno-asm", "-O2", "-Wall", "-lm", "--static"]
 running_command = ["./main"]
 running_args = ""
+compile_image = "compiler:v1"
+running_image = "runner:v1"
 
 [[language]]
 language_id = 2
@@ -25,6 +29,8 @@ compile_args = ["main.pas", "-Co", "-Cr", "-Ct", "-Ci", "-Xt", "-Xi", "-O2", "-T
 execute_name = "main"
 running_command = ["./main"]
 running_args = ""
+compile_image = "compiler:v1"
+running_image = "runner:v1"
 
 [[language]]
 language_id = 3
@@ -35,3 +41,5 @@ execute_name = "Main.class"
 running_command = ["/usr/bin/java", "Main"]
 running_args = ""
 memory = 2048
+compile_image = "compiler:v1"
+running_image = "runner:v1"

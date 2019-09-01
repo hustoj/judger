@@ -4,8 +4,8 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock
 
-from judge.data.cache import LocalCache
-from judge.data.manager import DataManager
+from judge.data import DataStore
+from judge.data.store import LocalCache
 from judge.remote import DataResponse
 
 
@@ -34,13 +34,10 @@ class TestDataUtils(unittest.TestCase):
         os.rmdir(self.path)
 
     def test_get_data(self):
-        data = {
-            'input': 'test in data',
-            'output': 'test out data'
-        }
-        mock = MockApi(json.dumps(data).encode())
+        json_str = '[{"input":"1 2\\n3 4\\n","output":"3\\n7\\n"},{"input":"1 2\\n3 4\\n","output":"3\\n7\\n"}]'
+        mock = MockApi(json_str)
 
-        manager = DataManager()
+        manager = DataStore()
         local_cache = LocalCache('/tmp/ld/')
         local_cache.save_data = MagicMock()
         local_cache.get_data = MagicMock(return_value=mock.get_data)
@@ -50,8 +47,9 @@ class TestDataUtils(unittest.TestCase):
         manager.set_remote(mock)
         pid = 1117
         ret = manager.get_data(pid)
-        self.assertEqual(ret['input'], data['input'])
-        self.assertEqual(ret['output'], data['output'])
+        data = json.loads(json_str)
+        self.assertEqual(ret.get_input(0), data[0]['input'])
+        self.assertEqual(ret.get_output(0), data[0]['output'])
         local_cache.save_data.assert_called()
 
 

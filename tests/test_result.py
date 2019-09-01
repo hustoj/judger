@@ -1,7 +1,6 @@
 import unittest
 
-from judge.constant import Status
-from judge.runner import CaseResult
+from judge.result import Status, CaseResult
 
 
 class TestResult(unittest.TestCase):

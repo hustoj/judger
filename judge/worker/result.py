@@ -1,5 +1,5 @@
-from judge.runner.result import MAX_USER_OUT
-from judge.worker.comparer import Compare
+from judge.result import MAX_USER_OUT
+from judge.utils.comparer import Compare
 
 
 class ResultFiles(object):

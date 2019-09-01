@@ -13,6 +13,8 @@ class TestLanguage(unittest.TestCase):
             "compile_args": ["Main.cpp", "-o", "Main", "-fno-asm", "-O2", "-Wall", "-lm", "--static"],
             "running_command": "./main",
             "running_args": "",
+            'compile_image': '',
+            'running_image': '',
         }
         language_centre = LanguageCentre({'language': [language]})
 

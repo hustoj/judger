@@ -4,16 +4,18 @@
 import argparse
 import sys
 
-from judge.container.runner import Runner
+from judge.container.executor import DockerExecutor
 from judge.task import Task
+from judge.worker import Environment
 
 sys.path.append('.')
 
 
 def run(task):
     # type: (Task) -> None
-    executor = Runner()
-    executor.execute(task.working_dir)
+    env = Environment(task)
+    executor = DockerExecutor()
+    executor.execute(env.path)
     print(executor.is_ok())
     print(executor.get_stdout())
     print(executor.get_status())
@@ -29,7 +31,7 @@ def main():
     args = parser.parse_args()
 
     task = Task()
-    task.set_info({'memory_limit': args.memory, 'solution_id': 10000})
+    task.load({'memory_limit': args.memory, 'solution_id': 10000})
     task.working_dir = args.path
 
     run(task)

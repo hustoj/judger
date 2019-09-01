@@ -1,20 +1,34 @@
-import json
 import os
 import tempfile
 import unittest
 
-from judge.compiler.compiler import Compiler
-from judge.container.runner import Runner
-from judge.utils import write_file
+from judge.container import Compiler, Runner
+from judge.task import Task
+from judge.worker import Environment
 
 
 class CaseScaffold(unittest.TestCase):
+    language_id = 0
+
     def setUp(self):
         self.init_dir = os.getcwd()
         self.tmp_dir = tempfile.mkdtemp(prefix="tc")
         if os.getenv('DEBUG'):
             print(self.tmp_dir)
         os.chdir(self.tmp_dir)
+        self.env = Environment(self.prepare_task())
+
+    def prepare_task(self):
+        info = {
+            "solution_id": 1000,
+            "code": self.get_code(),
+            "language": self.get_language(),
+            "time_limit": 100,
+            "memory_limit": 100,
+        }
+        task = Task()
+        task.load(info)
+        return task
 
     def tearDown(self):
         if os.getcwd() == self.init_dir:
@@ -23,21 +37,13 @@ class CaseScaffold(unittest.TestCase):
         os.chdir(self.init_dir)
         os.rmdir(self.tmp_dir)
 
-    def compile_code(self, code, language_type):
-        write_file(language_type.source_name, code)
-
-        write_file('compile.json', json.dumps(language_type.to_compile_info()))
-
+    def compile_code(self, code):
         compiler = Compiler()
-        compiler.execute(self.tmp_dir)
+        compiler.compile(self.env)
 
-    def execute(self, language_type):
-        write_file('user.in', self.get_input())
-        case_conf = self.get_execute_config(language_type)
-        write_file('case.json', json.dumps(case_conf))
-
+    def execute(self):
         runner = Runner()
-        runner.execute(self.tmp_dir)
+        runner.execute(self.env, self.get_input())
 
     def get_execute_config(self, language_type):
         return {
@@ -55,7 +61,7 @@ class CaseScaffold(unittest.TestCase):
 5 6
 '''
 
-    def assertCompileResult(self, language_type):
+    def assertCompileResult(self):
         self.assertTrue(os.path.isfile('compile.out'))
         self.assertTrue(os.path.isfile('compile.err'))
         with open('compile.out') as f:
@@ -65,7 +71,7 @@ class CaseScaffold(unittest.TestCase):
             content = f.read()
             self.assertEqual("", content)
 
-        self.assertTrue(os.path.isfile(language_type.execute_name))
+        self.assertTrue(os.path.isfile(self.env.task.language_type.execute_name))
 
     def assertExecuteResult(self):
         self.assertTrue(os.path.isfile('user.out'))
@@ -78,3 +84,9 @@ class CaseScaffold(unittest.TestCase):
             content = f.read()
             print('user.err', content)
             # self.assertEqual("", content)
+
+    def get_code(self):
+        pass
+
+    def get_language(self):
+        return self.language_id

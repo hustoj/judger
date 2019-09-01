@@ -1,7 +1,7 @@
 #!/bin/env python3
 # coding: utf8
-from judge.constant import Status
-from judge.utils import is_debug
+from judge.result import Status
+from .utils import is_debug
 
 
 def strip_line(string):

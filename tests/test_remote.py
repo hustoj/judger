@@ -2,9 +2,8 @@ import unittest
 
 import requests
 
-from judge.constant import Status
 from judge.remote import WebApi, UrlMaster
-from judge.runner import CaseResult
+from judge.result import Status, CaseResult
 
 
 class TestJudgeUrl(unittest.TestCase):
@@ -33,6 +32,7 @@ class TestWebApi(unittest.TestCase):
     def build_api(self) -> WebApi:
         cfg = {
             'url': self.url,
+            'judge_id': '1',
             "code": "d1553bc6-54f0-43d7-9e23-b0eeccd45341"
         }
         api = WebApi(cfg)

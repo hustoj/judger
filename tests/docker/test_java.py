@@ -1,4 +1,3 @@
-from judge.language import get_language
 from tests.docker.case import CaseScaffold
 
 
@@ -7,11 +6,10 @@ class TestJava(CaseScaffold):
 
     def test_java(self):
         self.skipTest('not implement')
-        language_type = get_language(self.language_id)
-        self.compile_code(self.get_code(), language_type)
-        self.assertCompileResult(language_type)
+        self.compile_code(self.get_code())
+        self.assertCompileResult()
 
-        self.execute(language_type)
+        self.execute()
         self.assertExecuteResult()
 
     def get_code(self):

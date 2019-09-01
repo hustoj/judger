@@ -1,18 +1,19 @@
+import logging
 import signal
 
-from judge.utils.log import logger
+LOGGER = logging.getLogger(__name__)
 
 
 class GracefulKiller:
     stop = False
 
     def __init__(self):
-        logger().info('Signal register...')
+        LOGGER.info('Signal register...')
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
 
     def exit_gracefully(self, signum, frame):
-        logger().info('Judged receive signal, graceful exit...')
+        LOGGER.info('Judged receive signal, graceful exit...')
         self.stop = True
 
     @property

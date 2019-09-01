@@ -1,9 +1,15 @@
+import hashlib
 import json
+import logging
+import time
 
+import requests
+import toml
 from requests import Session
 
-from judge.runner import CaseResult
-from judge.utils.log import logger
+from judge.result import CaseResult
+
+LOGGER = logging.getLogger(__name__)
 
 
 class FetchDataFailed(Exception):
@@ -65,37 +71,61 @@ class WebApi(object):
 
     def set_client(self, client: Session):
         self._client = client
-        self._client.headers.update(self._auth_info())
 
-    def _auth_info(self):
+    def _auth_info(self, ts):
         header = {
-            'Judge-Code': self.cfg['code']
+            'Judge-Id': self.cfg['judge_id'],
+            'Token': self.make_token(ts)
         }
         return header
 
-    def get_data(self, pid) -> DataResponse:
-        log = logger()
-        log.info('Fetch data of {pid}'.format(pid=pid))
-        payload = {'pid': pid}
+    def make_token(self, ts):
+        origin = "{code}-{ts}".format(code=self.cfg['code'], ts=ts)
+        m = hashlib.md5()
+        m.update(origin.encode())
+        s = m.hexdigest()
+        return s
 
+    def get_data(self, pid) -> DataResponse:
+        LOGGER.info('Fetch data of {pid}'.format(pid=pid))
+
+        ts = self.prepare_client()
+        payload = {
+            'pid': pid,
+            'ts': ts,
+        }
         r = self._client.get(self.url_manager.data, params=payload)
         if r.status_code != 200:
-            log.error('fetch data failed: {r}'.format(r=r.content))
+            LOGGER.error('fetch data failed: {r}'.format(r=r.content))
             raise FetchDataFailed()
-        log.info('fetch data of {pid}: {content}'.format(pid=pid, content=r.content[:200]))
+        LOGGER.info('fetch data of {pid}: {content}'.format(pid=pid, content=r.content[:200]))
         return DataResponse(r.content)
 
     def report(self, result):
+        ts = self.prepare_client()
         if isinstance(result, CaseResult):
             result = result.as_dict()
-        logger().info('Report Status %s', json.dumps(result))
-        return self._client.post(self.url_manager.report, data=result)
+        LOGGER.info('Report Status %s', json.dumps(result))
+        return self._client.post(self.url_manager.report, params={'ts': ts}, data=result)
 
     def heartbeat(self):
-        self._client.post(self.url_manager.heartbeat)
+        ts = self.prepare_client()
+        self._client.post(self.url_manager.heartbeat, params={'ts': ts})
+
+    def prepare_client(self):
+        ts = int(time.time())
+        self._client.headers.update(self._auth_info(ts))
+        return ts
 
     def close(self):
         self._client.close()
 
     def __del__(self):
         self.close()
+
+
+if __name__ == '__main__':
+    cfg = toml.load('../judge.toml')
+    remote = WebApi(cfg['api'])
+    remote.set_client(requests.Session())
+    print(remote.get_data(1000).origin)
