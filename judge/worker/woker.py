@@ -3,25 +3,22 @@
 import logging
 
 from judge.container import CompileException, Compiler
-from judge.result import Status, CaseResult
-from judge.data import CaseManager, DataStore
-from judge.remote import WebApi
 from judge.container import Runner
+from judge.container.runner import TimeLimitException, ExecuteException
+from judge.data import CaseManager
+from judge.result import Status, CaseResult
 from judge.task import Task
 from .enviro import Environment
-from judge.container.runner import TimeLimitException, ExecuteException
 from .result import ResultFiles
 
 LOGGER = logging.getLogger(__name__)
 
 
 class Worker(object):
-    data_provider: DataStore
     task: Task
     result = None  # type: CaseResult
     task_data = None  # type: CaseManager
     sandbox: Environment
-    is_finished: bool
 
     def process(self, task: Task, data: CaseManager):
         self.task = task

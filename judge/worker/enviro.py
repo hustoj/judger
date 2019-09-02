@@ -1,10 +1,11 @@
 import json
 import logging
 import os
+import shutil
 from tempfile import mkdtemp
 
-from judge.utils import write_file
 from judge.utils import is_debug
+from judge.utils import write_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -22,32 +23,27 @@ class CaseConfig(object):
             'verbose': is_debug(),
         }
 
+
 class Environment(object):
     data_path: str
     current_dir = None
+    path: str
 
     def __init__(self, task):
         """
-        :type task: judge.Task
+        :type task: judge.task.Task
         """
         self.task = task
 
         self.backup()
-        self.path = self.prepare_working_dir()
-        LOGGER.info('Task {sid} dir is {path}'.format(sid=task.task_id, path=self.path))
-
-        self.write_code(task.language_type.source_name, task.code)
+        self.make_work_dir()
+        self.prepare_compile()
         self.write_case_info()
-        self.write_compile_config()
 
-    def prepare_working_dir(self):
-        path = mkdtemp(prefix='judge_')
-        os.chdir(path)
-
-        return path
-
-    def write_code(self, filename, code):
-        write_file(filename, code)
+    def make_work_dir(self):
+        self.path = mkdtemp(prefix='judge_')
+        os.chdir(self.path)
+        LOGGER.info('Task {sid} dir is {path}'.format(sid=self.task.task_id, path=self.path))
 
     def place_input(self, data):
         # type: (str) -> None
@@ -59,11 +55,12 @@ class Environment(object):
             content = json.dumps(cc.to_json())
             f.write(content)
 
-    def write_compile_config(self):
+    def prepare_compile(self):
+        write_file(self.task.language_type.source_name, self.task.code)
         content = json.dumps(self.task.language_type.to_compile_info())
         write_file('compile.json', content)
 
-    def prepare_for_next(self):
+    def clear_user_data(self):
         LOGGER.info("Clear working dir for next case")
         files = ['user.in', 'user.out', 'user.err']
         for file in files:
@@ -71,14 +68,13 @@ class Environment(object):
                 os.unlink(file)
 
     def clean(self):
-        pass
-        # if self.path and not is_debug():
-        #     LOGGER.info("Clean working dir {path}".format(path=self.path))
-        #     if os.path.exists(self.path):
-        #         shutil.rmtree(self.path)
-        #     else:
-        #         LOGGER.warning("path is not exist!")
-        # self.restore()
+        if self.path and not is_debug():
+            LOGGER.info("Clean working dir {path}".format(path=self.path))
+            if os.path.exists(self.path):
+                shutil.rmtree(self.path)
+            else:
+                LOGGER.error("working path[{path}] is not exist!".format(path=self.path))
+        self.restore()
 
     def restore(self):
         os.chdir(self.current_dir)

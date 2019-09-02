@@ -20,7 +20,7 @@ class Judged(object):
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
-        self.killer = GracefulKiller()
+        self.cron = GracefulKiller()
         self.api = new_api(cfg.api)
         self.dataProvider = new_data_store(cfg.judged['data_cache'], self.api)
         load_languages()
@@ -28,26 +28,24 @@ class Judged(object):
     def run(self):
         dispatcher = TaskCentre(self.cfg.message_queue)
 
-        while self.go():
+        while not self.cron.stop:
             job = dispatcher.get_job()
             if job:
+                LOGGER.info("New task arrive: {job}".format(job=job))
                 self.handle(job)
             else:
                 self.take_rest()
+                continue
 
     def handle(self, job):
-        LOGGER.info("New task arrive: {job}".format(job=job))
-        worker = Worker()
-        task = Task.from_json(job)
         try:
+            worker = Worker()
+            task = Task.from_json(job)
             worker.process(task, self.dataProvider.get_data(task.problem_id))
             result = worker.get_result()
             self.api.report(result)
         except InvalidDataCase as e:
-            LOGGER.error("task data invalid! {task_id}".format(task_id=task.task_id))
-
-    def go(self):
-        return not self.killer.stop
+            LOGGER.error("task data invalid! {job}".format(job=job))
 
     def take_rest(self):
         LOGGER.info("Task queue empty, idle {duration}s".format(duration=self.duration))

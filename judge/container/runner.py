@@ -30,7 +30,7 @@ class Runner(object):
         :param str standard_input:
         :return:
         """
-        env.prepare_for_next()
+        env.clear_user_data()
         env.place_input(standard_input)
 
         try:

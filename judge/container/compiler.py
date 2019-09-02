@@ -35,8 +35,6 @@ class Compiler(object):
             compiler.execute(env.path)
             LOGGER.info('Compiler: Task %d finished, result: %s', env.task.task_id, compiler.get_status())
             LOGGER.debug('Compiler stdout: %s', compiler.get_stdout())
-            # todo: check target is ok
-            # self.check_result(task.language_type.target_name)
         except DockerException as err:
             LOGGER.error('Docker Exception:', err)
             raise RuntimeError("Docker execute failed {err}".format(err=err))
