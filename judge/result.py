@@ -97,7 +97,7 @@ class CaseResult(object):
     def as_dict(self):
         return {
             'solution_id': self.solution_id,
-            'result': self.result,
+            'status': self.result,
             'error': self.error,
             'time_cost': self.time_cost,
             'memory_cost': self.memory

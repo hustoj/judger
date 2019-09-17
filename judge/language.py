@@ -86,5 +86,5 @@ class LanguageCentre(object):
     def get_language(self, language_id) -> LanguageType:
         if language_id in self._languages:
             return self._languages[language_id]
-        LOGGER.info('Language id not exist: {id}'.format(id=language_id))
+        LOGGER.info('language id not exist: {id}'.format(id=language_id))
         raise LanguageNotExist()
