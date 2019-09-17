@@ -1,10 +1,16 @@
 import json
 import logging
 
+from judge.utils import JudgeException
+
 LOGGER = logging.getLogger(__name__)
 
 
-class InvalidDataCase(BaseException):
+class DataException(JudgeException):
+    pass
+
+
+class InvalidDataCase(DataException):
     pass
 
 

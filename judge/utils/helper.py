@@ -1,0 +1,3 @@
+
+class JudgeException(BaseException):
+    pass

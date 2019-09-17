@@ -8,6 +8,7 @@ import toml
 from requests import Session
 
 from judge.result import CaseResult
+from judge.utils import JudgeException
 
 LOGGER = logging.getLogger(__name__)
 
@@ -22,6 +23,14 @@ def new_api(cfg):
     api.set_client(client)
 
     return api
+
+
+def make_token(code, ts):
+    origin = "{code}-{ts}".format(code=code, ts=ts)
+    m = hashlib.md5()
+    m.update(origin.encode())
+    s = m.hexdigest()
+    return s
 
 
 class UrlMaster(object):
@@ -46,7 +55,7 @@ class UrlMaster(object):
         return self.base_url + 'heartbeat'
 
 
-class InvalidData(BaseException):
+class InvalidData(JudgeException):
     pass
 
 
@@ -75,16 +84,9 @@ class WebApi(object):
     def _auth_info(self, ts):
         header = {
             'Judge-Id': self.cfg['judge_id'],
-            'Token': self.make_token(ts)
+            'Token': make_token(self.cfg['code'], ts)
         }
         return header
-
-    def make_token(self, ts):
-        origin = "{code}-{ts}".format(code=self.cfg['code'], ts=ts)
-        m = hashlib.md5()
-        m.update(origin.encode())
-        s = m.hexdigest()
-        return s
 
     def get_data(self, pid) -> DataResponse:
         LOGGER.info('Fetch data of {pid}'.format(pid=pid))
