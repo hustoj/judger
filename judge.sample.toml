@@ -1,25 +1,27 @@
 [judged]
 pid_file = "/tmp/hustoj.pid"
 sleep_time = 1
-server_id = 0
-log_file = "/tmp/hustoj.log"
-data_cache = "/tmp/hoj_data/"
+debug = false  # is debug
+log_file = "/tmp/hustoj.log" # log path
+data_cache = "/tmp/hoj_data/"  # local data cache
+running_image = "compiler:v1" # runner docker image name
+compile_image = "runner:v1" # compiler docker image name
 
 [api]
-url = "http://localhost:5000/judge/api/"
-judge_id = "1"
-code = "d1553bc6-54f0-43d7-9e23-b0eeccd45341"
+url = "http://localhost:5000/judge/api/" # web api
+judge_id = "1" # judge id when register in hustoj web
+code = "d1553bc6-54f0-43d7-9e23-b0eeccd45341" # judge code
 
 [mq]
-host = "host"
-port = 5672
-db = "hustoj"
-username = "hustoj"
-password = "password"
-queue = "hustoj"
-vhost = "/"
+host = "127.0.0.1" # rabbitmq host
+port = 5672 # rabbitmq port
+db = "hustoj" # db name, default: hustoj
+username = "hustoj" # rabbitmq username
+password = "password" # rabbitmq password
+queue = "hustoj" # mq queue name
+vhost = "/" # mq vhost
 routing_key = "hustoj"
 
 [worker]
-path = "/tmp/hustoj"
+path = "/tmp/hustoj" # local working path, use shm is better for disk
 
