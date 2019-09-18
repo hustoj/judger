@@ -21,6 +21,7 @@ class Judged(object):
 
     def __init__(self, cfg: Config):
         self.cfg = cfg
+        self.duration = cfg.judged['sleep_time']
         self.cron = GracefulKiller()
         self.api = new_api(cfg.api)
         self.dataProvider = new_data_store(cfg.judged['data_cache'], self.api)
