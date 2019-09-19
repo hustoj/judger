@@ -33,9 +33,9 @@ class DockerExecutor(object):
                                                read_only=True, volumes=self.volumes(),
                                                working_dir=self.working_dir
                                                )
+        self.status = self.container.wait()
         self.stdout = self.container.logs(stdout=True, stderr=False)
         self.stderr = self.container.logs(stdout=False, stderr=True)
-        self.status = self.container.wait()
         self.container.remove()
         client.close()
 
