@@ -43,6 +43,12 @@ class Judged(object):
         try:
             worker = Worker()
             task = Task.from_json(job)
+            if task.language_type.language_id == 3:
+                LOGGER.info('java current is not support now')
+                return
+            if task.is_special:
+                LOGGER.info('special judge is not support now')
+                return
             worker.process(task, self.dataProvider.get_data(task.problem_id))
             result = worker.get_result()
             self.api.report(result)
