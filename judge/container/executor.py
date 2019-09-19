@@ -28,7 +28,7 @@ class DockerExecutor(object):
         client = docker.DockerClient(base_url='unix://var/run/docker.sock')
         LOGGER.debug("({image}) running [{command}] in {dir}".format(image=self.image, command=self.command(),
                                                                      dir=self.working_dir))
-        self.container = client.containers.run(self.image, self.command(), auto_remove=True,
+        self.container = client.containers.run(self.image, self.command(), auto_remove=False,
                                                network_disabled=True, detach=True,
                                                read_only=True, volumes=self.volumes(),
                                                working_dir=self.working_dir
@@ -36,6 +36,7 @@ class DockerExecutor(object):
         self.stdout = self.container.logs(stdout=True, stderr=False)
         self.stderr = self.container.logs(stdout=False, stderr=True)
         self.status = self.container.wait()
+        self.container.remove()
         client.close()
 
     def is_ok(self):
