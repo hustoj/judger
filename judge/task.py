@@ -1,8 +1,12 @@
 import json
+import logging
 
 import pika
+from pika.exceptions import AMQPConnectionError
 
 from judge.language import LanguageType, get_language
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Task(object):
@@ -61,13 +65,12 @@ class Task(object):
 class TaskCentre(object):
     _connection = None
     _config = None
-    _channel = None
 
     def __init__(self, config):
         self._config = config
 
     def _get_connection(self):
-        if self._connection is None:
+        if self._connection is None or self._connection.is_closed:
             credentials = pika.PlainCredentials(self._config['username'], self._config['password'])
             parameters = pika.ConnectionParameters(host=self._config['host'], port=self._config['port'],
                                                    virtual_host=self._config['vhost'],
@@ -78,16 +81,16 @@ class TaskCentre(object):
         return self._connection
 
     def get_channel(self):
-        if self._channel is None:
-            self._channel = self._get_connection().channel()
-
-        return self._channel
+        return self._get_connection().channel()
 
     def get_job(self):
-        channel = self.get_channel()
-        method_frame, header_frame, body = channel.basic_get(self._config['queue'])
-        if method_frame:
-            channel.basic_ack(method_frame.delivery_tag)
-            return body
-        else:
-            return None
+        try:
+            channel = self.get_channel()
+            method_frame, header_frame, body = channel.basic_get(self._config['queue'])
+            if method_frame:
+                channel.basic_ack(method_frame.delivery_tag)
+                return body
+            else:
+                return None
+        except AMQPConnectionError as e:
+            LOGGER.error('connection mq failed!')
