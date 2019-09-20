@@ -99,9 +99,12 @@ class CaseResult(object):
             'solution_id': self.solution_id,
             'status': self.result,
             'error': self.error,
-            'time_cost': self.time_cost,
+            'time_cost': self.time_to_ms(),
             'memory_cost': self.memory
         }
+
+    def time_to_ms(self):
+        return int(self.time_cost / 1000)
 
     def __str__(self):
         return "solution_id: {id},result:{result}," \
