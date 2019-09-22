@@ -37,6 +37,7 @@ class Runner(object):
             runner = DockerExecutor()
             runner.set_image(env.task.language_type.running_image)
             runner.set_command("runner")
+            runner.time_limit = env.task.time_limit * 2
             runner.execute(env.path)
             LOGGER.info('Executor: Task %d finished, result: %s', env.task.task_id, runner.get_status())
             if not runner.is_ok():

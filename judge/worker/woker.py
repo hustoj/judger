@@ -19,6 +19,7 @@ class Worker(object):
     result = None  # type: CaseResult
     task_data = None  # type: CaseManager
     sandbox: Environment
+    has_exception = False
 
     def process(self, task: Task, data: CaseManager):
         self.task = task
@@ -67,6 +68,8 @@ class Worker(object):
             except ExecuteException as e:
                 LOGGER.error('Task %d, case %d failed: code: %d, out: %s, err: %s.',
                              self.task.task_id, index, e.code, e.user_out, e.user_err)
+                self.has_exception = True
+                break
 
     def compile(self):
         LOGGER.info('Compiling task {id}'.format(id=self.task.task_id))
