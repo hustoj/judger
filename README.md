@@ -2,7 +2,7 @@
 
 ## Introduce
 
-This project retrieve task from rabbitmq, get imformation of sulution from hustoj, use [runner](https://github.com/hustoj/runner) to compile and execute solution. Check user program is a accept solution.
+This project retrieve task from rabbitmq, get information of solution from hustoj, use [runner](https://github.com/hustoj/runner) to compile and execute solution. Check user program is an accept solution.
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/hustoj/judger/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/hustoj/judger/?branch=master) 
 [![Build Status](https://scrutinizer-ci.com/g/hustoj/judger/badges/build.png?b=master)](https://scrutinizer-ci.com/g/hustoj/judger/build-status/master)
@@ -16,12 +16,11 @@ This project retrieve task from rabbitmq, get imformation of sulution from husto
 **Notice: You should install [runner](https://github.com/hustoj/runner) first on your machine.**
 
 1. You should install python with 3.6 or newer
-2. You should install [pipenv](https://github.com/pypa/pipenv)
+2. You should install [poetry](https://github.com/python-poetry/poetry)
 3. install python dependency:
     
     ```bash
-    pipenv --python 3.6 # use 3.6 or higher
-    pipenv install
+    poetry install
     ```
 4. configure 
 
@@ -29,7 +28,7 @@ This project retrieve task from rabbitmq, get imformation of sulution from husto
     cp judge.sample.toml judge.toml
     ```
     
-    detail description can see judge.sample.toml, you can modify judge.toml as your actual enviroment.
+    detail description can see judge.sample.toml, you can modify judge.toml as your actual environment.
     
 5. run
 
