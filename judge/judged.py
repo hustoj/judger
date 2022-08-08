@@ -31,13 +31,16 @@ class Judged(object):
         dispatcher = TaskCentre(self.cfg.message_queue)
 
         while not self.cron.stop:
-            job = dispatcher.get_job()
-            if job:
-                LOGGER.info("New task arrive: {job}".format(job=job))
-                self.handle(job)
-            else:
+            jobs = dispatcher.get_job()
+            if len(jobs) == 0:
                 self.take_rest()
                 continue
+            LOGGER.info("New task arrive: {job}".format(job=jobs))
+            if isinstance(jobs, list):
+                for job in jobs:
+                    self.handle(job)
+            else:
+                self.handle(jobs)
 
     def handle(self, job):
         try:

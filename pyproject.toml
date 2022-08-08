@@ -11,6 +11,7 @@ toml = "^0.10.2"
 docker = "^5.0.3"
 pika = "^1.3.0"
 psutil = "^5.9.1"
+boto3 = "^1.24.46"
 
 [tool.poetry.dev-dependencies]
 
