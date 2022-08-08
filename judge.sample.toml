@@ -13,6 +13,9 @@ judge_id = "1" # judge id when register in hustoj web
 code = "d1553bc6-54f0-43d7-9e23-b0eeccd45341" # judge code
 
 [mq]
+driver = 'sqs'
+
+[mq.rabbitmq]
 host = "127.0.0.1" # rabbitmq host
 port = 5672 # rabbitmq port
 db = "hustoj" # db name, default: hustoj
@@ -21,6 +24,10 @@ password = "password" # rabbitmq password
 queue = "hustoj" # mq queue name
 vhost = "/" # mq vhost
 routing_key = "hustoj"
+
+[mq.sqs]
+region  = ''
+queue_url = ''
 
 [worker]
 path = "/tmp/hustoj" # local working path, use shm is better for disk
