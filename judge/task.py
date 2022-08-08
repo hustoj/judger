@@ -136,10 +136,16 @@ class TaskCentre(object):
 
     def __init__(self, config):
         self._config = config
+        self.init_provider(config)
+
+    def init_provider(self, config):
         if 'sqs' == config['driver']:
             self._provider = SqsProvider(config['sqs'])
+            return
         if 'rabbitmq' == config['driver']:
             self._provider = RabbitMqProvider(config['rabbitmq'])
+            return
+        raise Exception('message queue driver({}) not found!'.format(config['driver']))
 
     def get_job(self):
         return self._provider.get_task()
