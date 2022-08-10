@@ -5,7 +5,7 @@ from time import sleep
 
 from judge.config import Config
 from judge.data import new_data_store
-from judge.language import load_languages
+from judge.language import load_languages, LanguageType, LANG_JAVA
 from judge.libs.graceful import GracefulKiller
 from judge.remote import new_api
 from judge.task import Task, TaskCentre
@@ -16,11 +16,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Judged(object):
-    cfg = ...
+    _config = ...
     duration = 2
 
     def __init__(self, cfg: Config):
-        self.cfg = cfg
+        self._config = cfg
         self.duration = cfg.judged['sleep_time']
         self.cron = GracefulKiller()
         self.api = new_api(cfg.api)
@@ -28,7 +28,7 @@ class Judged(object):
         load_languages()
 
     def run(self):
-        dispatcher = TaskCentre(self.cfg.message_queue)
+        dispatcher = TaskCentre(self._config.message_queue)
 
         while not self.cron.stop:
             jobs = dispatcher.get_job()
@@ -46,11 +46,7 @@ class Judged(object):
         try:
             worker = Worker()
             task = Task.from_json(job)
-            if task.language_type.language_id == 3:
-                LOGGER.info('java current is not support now')
-                return
-            if task.is_special:
-                LOGGER.info('special judge is not support now')
+            if not self.is_support(task):
                 return
             worker.process(task, self.dataProvider.get_data(task.problem_id))
             if worker.has_exception:
@@ -59,6 +55,15 @@ class Judged(object):
             self.api.report(result)
         except JudgeException as e:
             LOGGER.error("task failed! {job}: {err}".format(job=job, err=e))
+
+    def is_support(self, task: Task):
+        if task.is_special:
+            LOGGER.info('{} is special judge, current not support now'.format(task.task_id))
+            return False
+        if not task.language_type.is_enabled:
+            LOGGER.info('language {} current is not support now'.format(task.language_type))
+            return False
+        return True
 
     def take_rest(self):
         sleep(self.duration)

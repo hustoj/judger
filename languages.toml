@@ -1,5 +1,6 @@
 [[language]]
 language_id = 0
+name = "c"
 source_name = "main.c"
 compile_command = "gcc"
 execute_name = "main"
@@ -9,9 +10,11 @@ running_command = ["./main"]
 running_args = ""
 compile_image = "compiler:v1"
 running_image = "runner:v1"
+enabled = true
 
 [[language]]
 language_id = 1
+name = "cpp"
 source_name = "main.cpp"
 compile_command = "g++"
 execute_name = "main"
@@ -20,9 +23,11 @@ running_command = ["./main"]
 running_args = ""
 compile_image = "compiler:v1"
 running_image = "runner:v1"
+enabled = true
 
 [[language]]
 language_id = 2
+name = "pascal"
 source_name = "main.pas"
 compile_command = "fpc"
 compile_args = ["main.pas", "-Co", "-Cr", "-Ct", "-Ci", "-Xt", "-Xi", "-O2", "-Tlinux", "-omain"]
@@ -31,9 +36,11 @@ running_command = ["./main"]
 running_args = ""
 compile_image = "compiler:v1"
 running_image = "runner:v1"
+enabled = true
 
 [[language]]
 language_id = 3
+name = "java"
 source_name = "Main.java"
 compile_command = "javac"
 compile_args = ["-J-XX:-UseCompressedClassPointers", "Main.java"]
@@ -43,3 +50,4 @@ running_args = ""
 memory = 2048
 compile_image = "compiler:v1"
 running_image = "runner:v1"
+enabled = true
