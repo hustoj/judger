@@ -44,7 +44,7 @@ class Task(object):
 
     @property
     def language(self):
-        return self.info['language']
+        return int(self.info['language'])
 
     @property
     def is_special(self):
