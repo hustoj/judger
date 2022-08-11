@@ -72,6 +72,7 @@ class RabbitMqProvider(object):
 
     def _get_connection(self):
         if self._connection is None or self._connection.is_closed:
+            LOGGER.info('connecting to mq...')
             credentials = pika.PlainCredentials(self._config['username'], self._config['password'])
             parameters = pika.ConnectionParameters(host=self._config['host'], port=self._config['port'],
                                                    virtual_host=self._config['vhost'],
@@ -91,7 +92,8 @@ class RabbitMqProvider(object):
             else:
                 return []
         except AMQPConnectionError as e:
-            LOGGER.error('connection mq failed!')
+            LOGGER.error('connection mq failed! %s. now reset connection', e)
+            self._connection = None
 
     def delete_task(self, task):
         pass
@@ -129,7 +131,7 @@ class SqsProvider(object):
         LOGGER.info('delete task {} ret: {}'.format(receipt, ret))
 
 
-class TaskCentre(object):
+class TaskDispatcher(object):
     _connection = None
     _config = None
     _provider = None

@@ -1,6 +1,6 @@
 [judged]
 pid_file = "/tmp/hustoj.pid"
-sleep_time = 1
+idle_time = 1
 debug = false  # is debug
 log_file = "/tmp/hustoj.log" # log path
 data_cache = "/tmp/hoj_data/"  # local data cache

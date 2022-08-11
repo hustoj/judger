@@ -4,11 +4,11 @@ import logging
 from time import sleep
 
 from judge.config import Config
-from judge.data import new_data_store
+from judge.data import new_data_provider
 from judge.language import load_languages, LanguageType, LANG_JAVA
 from judge.libs.graceful import GracefulKiller
 from judge.remote import new_api
-from judge.task import Task, TaskCentre
+from judge.task import Task, TaskDispatcher
 from judge.utils import JudgeException
 from judge.worker import Worker
 
@@ -21,16 +21,16 @@ class Judged(object):
 
     def __init__(self, cfg: Config):
         self._config = cfg
-        self.duration = cfg.judged['sleep_time']
-        self.cron = GracefulKiller()
+        self.duration = cfg.judged['idle_time']
+        self.signal = GracefulKiller()
         self.api = new_api(cfg.api)
-        self.dataProvider = new_data_store(cfg.judged['data_cache'], self.api)
+        self.dataProvider = new_data_provider(cfg.judged['data_cache'], self.api)
         load_languages()
 
     def run(self):
-        dispatcher = TaskCentre(self._config.message_queue)
+        dispatcher = TaskDispatcher(self._config.message_queue)
 
-        while not self.cron.stop:
+        while not self.signal.stop:
             jobs = dispatcher.get_job()
             if len(jobs) == 0:
                 self.take_rest()

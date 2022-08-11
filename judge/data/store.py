@@ -73,7 +73,7 @@ class DataStore(object):
         return False
 
 
-def new_data_store(path, api) -> DataStore:
+def new_data_provider(path, api) -> DataStore:
     manager = DataStore()
     manager.set_cache(LocalCache(path))
     manager.set_remote(api)
