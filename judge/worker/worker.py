@@ -1,20 +1,18 @@
-#!/bin/env python
-# coding: utf8
 import logging
 
-from judge.container import CompileException, Compiler
-from judge.container import Runner
-from judge.container.runner import TimeLimitException, ExecuteException
+from judge.container import CompileException, Compiler, Runner
+from judge.container.runner import ExecuteException, TimeLimitException
 from judge.data import CaseManager
-from judge.result import Status, CaseResult
+from judge.result import CaseResult, Status
 from judge.task import Task
+
 from .enviro import Environment
 from .result import ResultFiles
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Worker(object):
+class Worker:
     task: Task
     result = None  # type: CaseResult
     task_data = None  # type: CaseManager
@@ -31,14 +29,14 @@ class Worker(object):
             self.compile()
             self.running()
         except CompileException as e:
-            LOGGER.warning('Task {id} Compile failed: {e}'.format(id=self.task.task_id, e=e))
+            LOGGER.warning('Task %d Compile failed: %s', self.task.task_id, e)
             self.result.result = Status.COMPILE_ERROR
             self.result.error = str(e)
         except TimeLimitException:
-            LOGGER.error('Task {id} time limit in runner!!'.format(id=self.task.task_id))
+            LOGGER.error('Task %d time limit in runner!!', self.task.task_id)
             self.result.result = Status.TIME_LIMIT
         except ExecuteException as e:
-            LOGGER.error('Task {id} Execute failed: {e}'.format(id=self.task.task_id, e=e))
+            LOGGER.error('Task %d Execute failed: %s', self.task.task_id, e)
             self.result.result = Status.RUNTIME_ERROR
         except RuntimeError as e:
             LOGGER.error('Catch Runtime Error: %s', e)
@@ -58,12 +56,15 @@ class Worker(object):
         return case_result
 
     def running(self):
-        LOGGER.info('Executing {id} @ {path}'.format(id=self.task.task_id, path=self.sandbox.path))
+        LOGGER.info('Executing %d @ %s', self.task.task_id, self.sandbox.path)
 
         index = 0
         for dataCase in self.task_data:
             index += 1
-            LOGGER.info('Task %d, case %d, total %d', self.task.task_id, index, self.task_data.count)
+            LOGGER.info(
+                'Task %d, case %d, total %d',
+                self.task.task_id, index, self.task_data.count,
+            )
             try:
                 case_result = self.execute(dataCase)
                 LOGGER.info('Task %d, case %d Execute finished', self.task.task_id, index)
@@ -71,21 +72,22 @@ class Worker(object):
                 if not self.result.is_ok():
                     break
             except ExecuteException as e:
-                LOGGER.error('Task %d, case %d failed: code: %d, out: %s, err: %s.',
-                             self.task.task_id, index, e.code, e.user_out, e.user_err)
+                LOGGER.error(
+                    'Task %d, case %d failed: code: %d, out: %s, err: %s.',
+                    self.task.task_id, index, e.code, e.user_out, e.user_err,
+                )
                 self.result.result = Status.RUNTIME_ERROR
                 self.has_exception = True
                 break
 
     def compile(self):
-        LOGGER.info('Compiling task {id}'.format(id=self.task.task_id))
+        LOGGER.info('Compiling task %d', self.task.task_id)
         return Compiler.compile(self.sandbox)
 
     def prepare(self) -> Environment:
         LOGGER.info('Prepare environment for task %d', self.task.task_id)
 
-        environ = Environment(self.task)
-        return environ
+        return Environment(self.task)
 
     def get_result(self):
         return self.result

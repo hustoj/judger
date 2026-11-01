@@ -1,11 +1,9 @@
-#!/bin/env python
-# coding: utf8
 import logging
 from time import sleep
 
 from judge.config import Config
 from judge.data import new_data_provider
-from judge.language import load_languages, LanguageType, LANG_JAVA
+from judge.language import load_languages
 from judge.libs.graceful import GracefulKiller
 from judge.remote import new_api
 from judge.task import Task, TaskDispatcher
@@ -15,7 +13,7 @@ from judge.worker import Worker
 LOGGER = logging.getLogger(__name__)
 
 
-class Judged(object):
+class Judged:
     _config = ...
     duration = 2
 
@@ -60,10 +58,10 @@ class Judged(object):
 
     def is_support(self, task: Task):
         if task.is_special:
-            LOGGER.info('{} is special judge, current not support now'.format(task.task_id))
+            LOGGER.info('%s is special judge, current not support now', task.task_id)
             return False
         if not task.language_type.is_enabled:
-            LOGGER.info('language {} current is not support now'.format(task.language_type))
+            LOGGER.info('language %s current is not support now', task.language_type)
             return False
         return True
 

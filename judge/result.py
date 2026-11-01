@@ -11,7 +11,7 @@ def read_user_output(name):
         return output.read(MAX_USER_OUT)
 
 
-class Status(object):
+class Status:
     PENDING = 0
     PENDING_REJUDGE = 1
     COMPILING = 2
@@ -30,7 +30,7 @@ class Status(object):
         return Status.ACCEPTED == int(result)
 
 
-class CaseResult(object):
+class CaseResult:
     solution_id = ...
     result = Status.ACCEPTED
     time_cost = 0
@@ -49,7 +49,7 @@ class CaseResult(object):
 
     @classmethod
     def parse_runner(cls, content):
-        LOGGER.debug("running content is [{content}]".format(content=content))
+        LOGGER.debug("running content is [%s]", content)
         ret = json.loads(content)
         self = cls()
         self.result = ret['status']
@@ -118,11 +118,11 @@ class CaseResult(object):
         return int(self.time_cost / 1000)
 
     def __str__(self):
-        return "solution_id: {id},result:{result}," \
-               "time_cost:{time_cost},memory_cost:{memory_cost}," \
-               "error:{error}" \
-            .format(id=self.solution_id, result=self.result, time_cost=self.time_cost,
-                    memory_cost=self.memory, error=self.error)
+        return (
+            f"solution_id: {self.solution_id},result:{self.result},"
+            f"time_cost:{self.time_cost},memory_cost:{self.memory},"
+            f"error:{self.error}"
+        )
 
     def __repr__(self):
         return self.__str__()

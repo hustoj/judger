@@ -5,7 +5,7 @@ from unittest.mock import patch
 import requests
 
 from judge.remote import RemoteRequestFailed, UrlMaster, WebApi
-from judge.result import CaseResult, Status
+from judge.result import Status
 
 
 class FakeResponse:

@@ -4,7 +4,7 @@ import time
 import psutil
 
 
-class PIDFile(object):
+class PIDFile:
     __slots__ = ('__file', '__checked', '__process')
 
     def __init__(self, pid_file):
@@ -30,10 +30,10 @@ class PIDFile(object):
         if not os.path.exists(self.__file):
             return True
 
-        with open(self.__file, "r") as f:
+        with open(self.__file) as f:
             try:
                 pid = int(f.read().strip())
-            except Exception:
+            except (OSError, ValueError):
                 return True
 
         for p in psutil.pids():
@@ -56,7 +56,7 @@ class PIDFile(object):
         if self.__checked and os.path.exists(self.__file):
             try:
                 os.unlink(self.__file)
-            except Exception:
+            except OSError:
                 pass
 
 

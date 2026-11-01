@@ -9,7 +9,7 @@ from judge.data.store import LocalCache
 from judge.remote import DataResponse
 
 
-class MockApi(object):
+class MockApi:
 
     def __init__(self, data):
         self.data = data
@@ -34,7 +34,8 @@ class TestDataUtils(unittest.TestCase):
         os.rmdir(self.path)
 
     def test_get_data(self):
-        json_str = '[{"input":"1 2\\n3 4\\n","output":"3\\n7\\n"},{"input":"1 2\\n3 4\\n","output":"3\\n7\\n"}]'
+        case = '{"input":"1 2\\n3 4\\n","output":"3\\n7\\n"}'
+        json_str = f'[{case},{case}]'
         mock = MockApi(json_str)
 
         manager = DataStore()

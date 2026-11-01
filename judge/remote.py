@@ -41,7 +41,7 @@ def new_api(cfg):
     return api
 
 
-class UrlMaster(object):
+class UrlMaster:
     def __init__(self, base_url: str) -> None:
         self.base_url = base_url.rstrip('/') + '/'
 
@@ -58,7 +58,7 @@ class UrlMaster(object):
         return self.base_url + 'heartbeat'
 
 
-class DataResponse(object):
+class DataResponse:
     def __init__(self, response):
         self.origin = response
         self.data = json.loads(response)
@@ -75,7 +75,7 @@ class DataResponse(object):
         return self.origin
 
 
-class WebApi(object):
+class WebApi:
     _client = None
 
     def __init__(self, cfg):
@@ -113,7 +113,9 @@ class WebApi(object):
                 continue
             if isinstance(value, bool):
                 value = '1' if value else '0'
-            pairs.append('%s=%s' % (quote(str(key), safe=''), quote(str(value), safe='')))
+            key_text = quote(str(key), safe='')
+            value_text = quote(str(value), safe='')
+            pairs.append(f'{key_text}={value_text}')
         canonical = '\n'.join([
             method.upper(), '/' + path.lstrip('/'), '&'.join(pairs), nonce,
         ])
@@ -149,7 +151,9 @@ class WebApi(object):
             # Exception details can include URLs, credentials or response bodies.
             raise RemoteRequestFailed('judge request failed') from None
         if not 200 <= response.status_code < 300:
-            raise RemoteRequestFailed('judge request returned HTTP %s' % response.status_code)
+            raise RemoteRequestFailed(
+                f'judge request returned HTTP {response.status_code}'
+            )
         if allow_empty and not response.content:
             return response
         try:
@@ -163,7 +167,9 @@ class WebApi(object):
         return response
 
     def get_data(self, pid) -> DataResponse:
-        response = self._request('GET', self.url_manager.data, {'pid': pid, 'ts': int(time.time())})
+        response = self._request(
+            'GET', self.url_manager.data, {'pid': pid, 'ts': int(time.time())}
+        )
         try:
             result = DataResponse(response.content)
         except (TypeError, ValueError):
@@ -189,7 +195,9 @@ class WebApi(object):
         return self._request('POST', self.url_manager.report, payload)
 
     def heartbeat(self):
-        self._request('POST', self.url_manager.heartbeat, {'ts': int(time.time())}, allow_empty=True)
+        self._request(
+            'POST', self.url_manager.heartbeat, {'ts': int(time.time())}, allow_empty=True
+        )
 
     def close(self):
         client = self._client
@@ -200,7 +208,7 @@ class WebApi(object):
     def __del__(self):
         try:
             self.close()
-        except BaseException:
+        except BaseException:  # noqa: BLE001
             # Includes partial initialization and this project's BaseException-
             # derived JudgeException; finalizers must never interrupt shutdown.
             pass

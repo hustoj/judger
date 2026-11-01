@@ -10,7 +10,7 @@ from judge.language import LanguageType, get_language
 LOGGER = logging.getLogger(__name__)
 
 
-class Task(object):
+class Task:
     info = ...
 
     @staticmethod
@@ -67,7 +67,7 @@ class Task(object):
         return self.info.get('judge_token', '')
 
 
-class RabbitMqProvider(object):
+class RabbitMqProvider:
     _connection = None
     _config = None
 
@@ -77,10 +77,15 @@ class RabbitMqProvider(object):
     def _get_connection(self):
         if self._connection is None or self._connection.is_closed:
             LOGGER.info('connecting to mq...')
-            credentials = pika.PlainCredentials(self._config['username'], self._config['password'])
-            parameters = pika.ConnectionParameters(host=self._config['host'], port=self._config['port'],
-                                                   virtual_host=self._config['vhost'],
-                                                   credentials=credentials)
+            credentials = pika.PlainCredentials(
+                self._config['username'], self._config['password']
+            )
+            parameters = pika.ConnectionParameters(
+                host=self._config['host'],
+                port=self._config['port'],
+                virtual_host=self._config['vhost'],
+                credentials=credentials,
+            )
 
             self._connection = pika.BlockingConnection(parameters)
 
@@ -89,12 +94,11 @@ class RabbitMqProvider(object):
     def get_task(self):
         try:
             channel = self._get_connection().channel()
-            method_frame, header_frame, body = channel.basic_get(self._config['queue'])
+            method_frame, _header, body = channel.basic_get(self._config['queue'])
             if method_frame:
                 channel.basic_ack(method_frame.delivery_tag)
                 return [body]
-            else:
-                return []
+            return []
         except AMQPConnectionError as e:
             LOGGER.error('connection mq failed! %s. now reset connection', e)
             self._connection = None
@@ -103,7 +107,7 @@ class RabbitMqProvider(object):
         pass
 
 
-class SqsProvider(object):
+class SqsProvider:
     _client = None
     _config = None
     _queue_url = None
@@ -132,10 +136,10 @@ class SqsProvider(object):
             QueueUrl=self._queue_url,
             ReceiptHandle=receipt
         )
-        LOGGER.info('delete task {} ret: {}'.format(receipt, ret))
+        LOGGER.info('delete task %s ret: %s', receipt, ret)
 
 
-class TaskDispatcher(object):
+class TaskDispatcher:
     _connection = None
     _config = None
     _provider = None

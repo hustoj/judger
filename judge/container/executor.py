@@ -4,12 +4,14 @@ import time
 
 import docker
 from docker.errors import NotFound
-from requests.exceptions import ConnectionError, ReadTimeout
+from requests.exceptions import ConnectionError as RequestsConnectionError
+from requests.exceptions import ReadTimeout
 
 LOGGER = logging.getLogger(__name__)
+MAX_DOCKER_RETRIES = 3
 
 
-class DockerExecutor(object):
+class DockerExecutor:
     dir_of_log = ''
     image_name = ''
     command_name = None
@@ -25,22 +27,26 @@ class DockerExecutor(object):
     def __init__(self) -> None:
         super().__init__()
         self._working_dir = '/data'
-        self.base_url = 'unix://var/run/docker.sock'
+        self.base_url = 'unix:///var/run/docker.sock'
         self.container_ids = []
 
     def execute(self, work_dir):
         # type: (str) -> None
         self.sandbox = work_dir
-        LOGGER.debug("({image}) running [{command}] in {dir}".format(image=self.image, command=self.command(),
-                                                                     dir=self.working_dir))
+        LOGGER.debug(
+            "(%s) running [%s] in %s",
+            self.image,
+            self.command(),
+            self.working_dir,
+        )
         retries = 0
         while True:
-            if retries > 3:
+            if retries > MAX_DOCKER_RETRIES:
                 raise RuntimeError('Docker has exception')
             try:
                 self.do_execute()
                 return
-            except (ConnectionError, ReadTimeout) as e:
+            except (RequestsConnectionError, ReadTimeout) as e:
                 LOGGER.error('docker running timeout !! %s', e)
                 retries += 1
                 LOGGER.info('retry %d, wait %ds for docker rest', retries, self.sleep_seconds)

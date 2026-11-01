@@ -1,4 +1,4 @@
-#!/bin/env python3
-
-from .compiler import Compiler, CompileException
+from .compiler import CompileException, Compiler
 from .runner import Runner
+
+__all__ = ["CompileException", "Compiler", "Runner"]

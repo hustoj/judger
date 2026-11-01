@@ -1,15 +1,15 @@
 import logging
 import os
 
-from judge.remote import WebApi, DataResponse
-from judge.utils import write_file, get_file_content
+from judge.remote import DataResponse, WebApi
+from judge.utils import get_file_content, write_file
 
 from .cases import CaseManager
 
 LOGGER = logging.getLogger(__name__)
 
 
-class LocalCache(object):
+class LocalCache:
     def __init__(self, path) -> None:
         super().__init__()
 
@@ -24,7 +24,7 @@ class LocalCache(object):
 
     def save_data(self, pid: int, content: bytes) -> None:
         path = self._get_data_path(pid)
-        LOGGER.info('write {path} data'.format(path=path))
+        LOGGER.info('write %s data', path)
         write_file(path, content.decode())
 
     def get_data(self, pid: int):
@@ -33,12 +33,12 @@ class LocalCache(object):
         return get_file_content(path)
 
     def _get_data_path(self, pid):
-        filename = '{pid}.json'.format(pid=pid)
+        filename = f'{pid}.json'
 
         return os.path.join(self.path, filename)
 
 
-class DataStore(object):
+class DataStore:
     remote: WebApi
     cache: LocalCache
 
@@ -52,7 +52,7 @@ class DataStore(object):
         if self.is_cached(pid):
             return CaseManager(self.cache.get_data(pid))
 
-        LOGGER.info('Data of {pid} is not cached, will fetch from remote'.format(pid=pid))
+        LOGGER.info('Data of %s is not cached, will fetch from remote', pid)
         return CaseManager(self.fetch_data(pid))
 
     def fetch_data(self, pid: int):

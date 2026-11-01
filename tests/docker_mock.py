@@ -1,4 +1,4 @@
-class DockerMocker(object):
+class DockerMocker:
     command = None
     image_name = None
 

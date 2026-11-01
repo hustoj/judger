@@ -10,7 +10,7 @@ LANG_PAS = 2
 LANG_JAVA = 3
 
 
-class LanguageType(object):
+class LanguageType:
     language_id = 0
     name = ''
     source_name = ''
@@ -77,7 +77,7 @@ def get_language(language_id) -> LanguageType:
     return language_manager.get_language(language_id)
 
 
-class LanguageCentre(object):
+class LanguageCentre:
     def __init__(self, cfg):
         self._languages = {}
         self.load(cfg)
@@ -105,5 +105,5 @@ class LanguageCentre(object):
         language_id = str(language_id)
         if language_id in self._languages:
             return self._languages[language_id]
-        LOGGER.info('language id not exist: {id}'.format(id=language_id))
+        LOGGER.info('language id not exist: %s', language_id)
         raise LanguageNotExist()

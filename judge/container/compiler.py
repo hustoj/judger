@@ -1,6 +1,5 @@
-#!/bin/env python3
-import logging
 import json
+import logging
 from pathlib import Path
 
 from docker.errors import DockerException
@@ -23,7 +22,7 @@ def alarm_handler(signum, frame):
     raise Alarm
 
 
-class Compiler(object):
+class Compiler:
     @staticmethod
     def compile(env):
         """
@@ -35,12 +34,16 @@ class Compiler(object):
             compiler.set_image(env.task.language_type.compile_image)
             compiler.set_command("compiler")
             compiler.execute(env.path)
-            LOGGER.info('Compiler: Task %d finished, result: %s', env.task.task_id, compiler.get_status())
+            LOGGER.info(
+                'Compiler: Task %d finished, result: %s',
+                env.task.task_id,
+                compiler.get_status(),
+            )
             LOGGER.debug('Compiler stdout: %s', compiler.get_stdout())
             try:
                 success = json.loads(compiler.get_stdout()).get('success') is True
-            except (ValueError, AttributeError):
-                raise RuntimeError('Invalid compiler response')
+            except (ValueError, AttributeError) as exc:
+                raise RuntimeError('Invalid compiler response') from exc
             if not compiler.is_ok() or not success:
                 details = []
                 for name in ['compile.err', 'compile.out']:
@@ -52,4 +55,4 @@ class Compiler(object):
                 raise CompileException(message or compiler.get_stderr().decode(errors='replace'))
         except DockerException as err:
             LOGGER.error('Docker Exception: %s', err)
-            raise RuntimeError("Docker execute failed {err}".format(err=err))
+            raise RuntimeError(f'Docker execute failed {err}') from err

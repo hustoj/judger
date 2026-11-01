@@ -1,6 +1,6 @@
-#!/bin/env python3
-# coding: utf8
+#!/usr/bin/env python3
 from judge.result import Status
+
 from .utils import is_debug
 
 
@@ -14,7 +14,7 @@ def compare_without_blank(standard, user):
     return strip_line(standard) == strip_line(user)
 
 
-class Compare(object):
+class Compare:
     standard = ''
     user_out = ''
 
@@ -37,8 +37,7 @@ class Compare(object):
         return Status.WRONG_ANSWER
 
     def _debug_output(self):
-        print("compare:\n--\n{standard}\n--\n{user}--"
-              .format(standard=self.standard, user=self.user_out))
+        print(f"compare:\n--\n{self.standard}\n--\n{self.user_out}--")
 
     def _is_full_match(self):
         return self.standard.rstrip() == self.user_out.rstrip()

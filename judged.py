@@ -1,7 +1,7 @@
 import argparse
 
-from judge.judged import Judged
 from judge.config import load_config
+from judge.judged import Judged
 from judge.libs import pid
 from judge.utils import setup_logger
 

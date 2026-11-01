@@ -1,7 +1,7 @@
 import unittest
 
 from judge.result import Status
-from judge.utils.comparer import strip_line, Compare
+from judge.utils.comparer import Compare, strip_line
 
 
 class TestStripLine(unittest.TestCase):

@@ -1,12 +1,11 @@
 import json
 import logging
 import os
-import shutil
 import shlex
+import shutil
 from tempfile import mkdtemp
 
-from judge.utils import is_debug
-from judge.utils import write_file
+from judge.utils import is_debug, write_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +27,7 @@ JAVA_RUNTIME_SYSCALLS = [
 ]
 
 
-class CaseConfig(object):
+class CaseConfig:
     def __init__(self, task):
         self.task = task
 
@@ -63,7 +62,7 @@ class CaseConfig(object):
         }
 
 
-class Environment(object):
+class Environment:
     data_path: str
     current_dir = None
     path: str
@@ -84,7 +83,7 @@ class Environment(object):
         if os.geteuid() == 0:
             os.chown(self.path, 1536, 1536)
         os.chdir(self.path)
-        LOGGER.info('Task {sid} dir is {path}'.format(sid=self.task.task_id, path=self.path))
+        LOGGER.info('Task %s dir is %s', self.task.task_id, self.path)
 
     def place_input(self, data):
         # type: (str) -> None
@@ -119,11 +118,11 @@ class Environment(object):
 
     def clean(self):
         if self.path and not is_debug():
-            LOGGER.info("Clean working dir {path}".format(path=self.path))
+            LOGGER.info("Clean working dir %s", self.path)
             if os.path.exists(self.path):
                 shutil.rmtree(self.path)
             else:
-                LOGGER.error("working path[{path}] is not exist!".format(path=self.path))
+                LOGGER.error("working path[%s] is not exist!", self.path)
         self.restore()
 
     def restore(self):

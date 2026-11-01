@@ -1,7 +1,7 @@
 import toml
 
 
-class Config(object):
+class Config:
     _cfg = ...
 
     def __init__(self, cfg):

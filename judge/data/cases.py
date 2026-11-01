@@ -14,7 +14,7 @@ class InvalidDataCase(DataException):
     pass
 
 
-class CaseManager(object):
+class CaseManager:
     def __init__(self, cases):
         if isinstance(cases, (bytes, str)):
             self.cases = json.loads(cases)
