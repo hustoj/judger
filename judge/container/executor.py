@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 
 import docker
@@ -68,6 +69,13 @@ class DockerExecutor(object):
                 read_only=True,
                 volumes=self.volumes(),
                 working_dir=self.working_dir,
+                user='0:0',
+                cap_add=['SYS_PTRACE'],
+                security_opt=['no-new-privileges:true'],
+                environment={
+                    'RUNNER_CGROUP_MOUNT': '/run/hustoj-cgroup',
+                    'RUNNER_CGROUP_PARENT': '/run/hustoj-cgroup',
+                },
             )
             container_id = container.id
             self.container_ids.append(container_id)
@@ -106,6 +114,10 @@ class DockerExecutor(object):
             self.log_dir(): {
                 'bind': '/var/log/runner',
                 'mode': 'rw'
+            },
+            os.environ.get('JUDGE_CGROUP_PARENT', '/sys/fs/cgroup/hustoj-judger'): {
+                'bind': '/run/hustoj-cgroup',
+                'mode': 'rw',
             },
         }
 

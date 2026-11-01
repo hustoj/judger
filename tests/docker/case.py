@@ -25,6 +25,7 @@ class CaseScaffold(unittest.TestCase):
             "language": self.get_language(),
             "time_limit": 100,
             "memory_limit": 100,
+            "judge_token": "test-token",
         }
         task = Task()
         task.load(info)
@@ -43,7 +44,8 @@ class CaseScaffold(unittest.TestCase):
 
     def execute(self):
         runner = Runner()
-        runner.execute(self.env, self.get_input())
+        result = runner.execute(self.env, self.get_input())
+        self.assertTrue(result.is_ok(), result.as_dict())
 
     def get_execute_config(self, language_type):
         return {
@@ -78,8 +80,7 @@ class CaseScaffold(unittest.TestCase):
         self.assertTrue(os.path.isfile('user.err'))
         with open('user.out') as f:
             content = f.read()
-            print('user.out', content)
-            # self.assertEqual("3\n7\n11\n", content)
+            self.assertEqual("3\n7\n11\n", content)
         with open('user.err') as f:
             content = f.read()
             print('user.err', content)

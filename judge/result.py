@@ -56,9 +56,9 @@ class CaseResult(object):
 
     @property
     def memory(self):
-        if self.peak_memory > self.rusage_memory:
-            return self.peak_memory
-        return self.rusage_memory
+        # The v2 runner reports task-local cgroup memory. Rusage is diagnostic
+        # and can include launcher allocations made before the task starts.
+        return self.peak_memory
 
     def update_by_case(self, case):
         """

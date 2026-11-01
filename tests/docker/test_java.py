@@ -5,7 +5,6 @@ class TestJava(CaseScaffold):
     language_id = 3
 
     def test_java(self):
-        self.skipTest('not implement')
         self.compile_code(self.get_code())
         self.assertCompileResult()
 

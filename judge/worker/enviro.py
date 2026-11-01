@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import shutil
+import shlex
 from tempfile import mkdtemp
 
 from judge.utils import is_debug
@@ -9,17 +10,55 @@ from judge.utils import write_file
 
 LOGGER = logging.getLogger(__name__)
 
+RUNTIME_SYSCALLS = [
+    'close',
+    'futex',
+    'lseek',
+    'newfstatat',
+    'openat',
+    'rt_sigaction',
+    'rt_sigprocmask',
+]
+JAVA_RUNTIME_SYSCALLS = [
+    'clock_getres', 'clock_nanosleep', 'clone', 'clone3', 'connect', 'faccessat2',
+    'fchdir', 'fcntl', 'flock', 'ftruncate', 'getcwd', 'getdents64',
+    'geteuid', 'getpid', 'getrusage', 'gettid', 'getuid', 'ioctl', 'kill',
+    'madvise', 'mkdir', 'munmap', 'prctl', 'pread64', 'sched_getaffinity',
+    'sched_yield', 'socket', 'stat', 'statfs', 'sysinfo', 'unlink',
+]
+
 
 class CaseConfig(object):
     def __init__(self, task):
         self.task = task
 
     def to_json(self):
+        command = self.task.language_type.running_command
+        command = shlex.split(command) if isinstance(command, str) else list(command)
+        args = self.task.language_type.running_args
+        args = shlex.split(args) if isinstance(args, str) else list(args)
+        if self.task.language == 3:
+            command = command[:1] + [
+                '-XX:-MaxFDLimit', '-Xmx32m', '-Xss256k',
+                '-XX:ReservedCodeCacheSize=16m', '-XX:CompressedClassSpaceSize=16m',
+                '-XX:MaxMetaspaceSize=32m', '-XX:CICompilerCount=2',
+                '-XX:ActiveProcessorCount=2',
+            ] + command[1:]
+        syscalls = RUNTIME_SYSCALLS + (JAVA_RUNTIME_SYSCALLS if self.task.language == 3 else [])
+        if self.task.language == 2:
+            syscalls = syscalls + ['getrlimit', 'ioctl']
         return {
             'cpu': self.task.time_limit,
+            'wallClock': max(2, self.task.time_limit * 2),
             'memory': self.task.memory_limit,
-            'language': self.task.language,
             'output': self.task.output_limit,
+            'command': command[0],
+            'args': command[1:] + args,
+            'RunUID': 1536,
+            'RunGID': 1536,
+            'NoNewPrivs': True,
+            'MaxProcs': 64 if self.task.language == 3 else 16,
+            'AdditionCalls': syscalls,
             'verbose': is_debug(),
         }
 
@@ -42,6 +81,8 @@ class Environment(object):
 
     def make_work_dir(self):
         self.path = mkdtemp(prefix='judge_')
+        if os.geteuid() == 0:
+            os.chown(self.path, 1536, 1536)
         os.chdir(self.path)
         LOGGER.info('Task {sid} dir is {path}'.format(sid=self.task.task_id, path=self.path))
 
@@ -57,7 +98,16 @@ class Environment(object):
 
     def prepare_compile(self):
         write_file(self.task.language_type.source_name, self.task.code)
-        content = json.dumps(self.task.language_type.to_compile_info())
+        config = self.task.language_type.to_compile_info()
+        config.update(RunUID=1536, RunGID=1536, NoNewPrivs=True, memory=512)
+        if self.task.language == 3:
+            config['args'] = (
+                '-J-XX:-UseCompressedClassPointers '
+                '-J-Xmx128m -J-XX:ReservedCodeCacheSize=16m '
+                '-J-XX:MaxMetaspaceSize=64m Main.java'
+            )
+            config['memory'] = 1024
+        content = json.dumps(config)
         write_file('compile.json', content)
 
     def clear_user_data(self):

@@ -1,0 +1,17 @@
+[Unit]
+Description=HUSTOJ judge daemon
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/srv/hustoj/judger
+ExecStartPre=/bin/sh /srv/hustoj/judger/scripts/prepare-cgroup.sh
+ExecStart=/srv/hustoj/judger/.venv/bin/python judged.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

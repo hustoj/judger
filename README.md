@@ -61,6 +61,29 @@ Enable submissions only after testing a real task through the queue and
 confirming that the website persists its result. Do not enable legacy API
 authentication as a substitute for upgrading the daemon.
 
+### v2 sandbox deployment
+
+Build `runner:v2` and `compiler:v2` from the sibling `runner` repository and
+set the image names in `languages.toml`. These binaries require Linux
+cgroup v2 with delegated `memory` and `pids` controllers. Install the supplied
+`judged.service`; its `ExecStartPre` prepares the root-owned
+`/sys/fs/cgroup/hustoj-judger` subtree on every service start.
+
+Only that delegated subtree is mounted into each container, at
+`/run/hustoj-cgroup`; the host cgroup root is not exposed writable.
+The trusted launcher runs as container root with `SYS_PTRACE`, while both
+compiler and runner children explicitly drop to UID/GID 1536 with
+`NoNewPrivs`. Containers retain a read-only root filesystem and disabled
+networking. Do not use privileged containers, disable syscall checks, or
+enable `RUNNER_ALLOW_UNSAFE_TEST_MODE` in production.
+
+Task directories are owned by UID/GID 1536. `case.json` now carries the
+language command and argument array explicitly; Java uses a separate
+runtime syscall profile, bounded JVM heap/native-memory settings and a
+64-thread task budget. Compiler responses must contain `success: true`;
+otherwise diagnostics are returned as a compile error. Infrastructure
+failures must never leave an Accepted result behind.
+
 Run offline regression tests with dependencies installed:
 
 ```bash
@@ -69,7 +92,7 @@ python -m unittest tests.test_remote tests.test_judged tests.test_result \
 ```
 
 Docker compiler/runner tests require a Linux host with the configured
-`compiler:v1` and `runner:v1` images:
+`compiler:v2` and `runner:v2` images:
 
 ```bash
 python -m unittest tests.docker

@@ -4,8 +4,8 @@ idle_time = 1
 debug = false  # is debug
 log_file = "/tmp/hustoj.log" # log path
 data_cache = "/tmp/hoj_data/"  # local data cache
-running_image = "compiler:v1" # runner docker image name
-compile_image = "runner:v1" # compiler docker image name
+running_image = "runner:v2" # runner docker image name
+compile_image = "compiler:v2" # compiler docker image name
 
 [api]
 url = "http://localhost:5000/judge/api/" # web api

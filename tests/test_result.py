@@ -26,3 +26,9 @@ class TestResult(unittest.TestCase):
         result = CaseResult.make(Status.ACCEPTED, 22)
         self.assertNotIn('compile_info', result.as_dict())
         self.assertNotIn('runtime_info', result.as_dict())
+
+    def test_memory_uses_cgroup_peak_not_launcher_rusage(self):
+        result = CaseResult.make(Status.ACCEPTED, 22)
+        result.peak_memory = 1024
+        result.rusage_memory = 128000
+        self.assertEqual(result.as_dict()['memory_cost'], 1024)
