@@ -6,6 +6,11 @@ LOGGER = logging.getLogger(__name__)
 MAX_USER_OUT = 65536
 
 
+def read_user_output(name):
+    with open(name, encoding="utf-8", errors="replace") as output:
+        return output.read(MAX_USER_OUT)
+
+
 class Status(object):
     PENDING = 0
     PENDING_REJUDGE = 1
@@ -83,13 +88,14 @@ class CaseResult(object):
 
     def get_error(self):
         try:
-            return open("user.err").read(MAX_USER_OUT)
-        except FileNotFoundError as e:
+            return read_user_output("user.err")
+        except FileNotFoundError:
             LOGGER.error('user.err not found')
             self.result = Status.RUNTIME_ERROR
             self.time_cost = 0
             self.peak_memory = 0
             self.rusage_memory = 0
+            return ''
 
     def is_ok(self):
         return Status.is_accept(self.result)

@@ -1,4 +1,4 @@
-from judge.result import MAX_USER_OUT
+from judge.result import read_user_output
 from judge.utils.comparer import Compare
 
 
@@ -18,6 +18,4 @@ class ResultFiles(object):
 
     @staticmethod
     def read_file(name):
-        with open(name) as f:
-            content = f.read(MAX_USER_OUT)
-        return content
+        return read_user_output(name)
