@@ -1,4 +1,0 @@
-version: "1.0"
-linter: jetbrains/qodana-python-community:2026.2
-profile:
-  name: qodana.recommended

@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+    - uses: actions/checkout@v7
+    - name: Install uv
+      uses: astral-sh/setup-uv@v10
+      with:
+        version: "0.12.18"
+        python-version: ${{ matrix.python-version }}
+        enable-cache: true
+    - name: Install dependencies
+      run: uv sync --locked
+    - name: Ruff
+      run: uv run --frozen --no-sync ruff check .
+    - name: Pytest
+      run: uv run --frozen --no-sync pytest
+
+  docker-integration:
+    name: Docker integration (C, C++, Pascal, Java)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+    - uses: actions/checkout@v7
+    - name: Checkout compatible runner source
+      uses: actions/checkout@v7
+      with:
+        repository: hustoj/runner
+        ref: a70f5fbfc8b45cf92deab4e4cdd9bbb513cf93f1
+        path: .ci-runner
+        persist-credentials: false
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: .ci-runner/go.mod
+        cache-dependency-path: .ci-runner/go.sum
+    - name: Install uv
+      uses: astral-sh/setup-uv@v10
+      with:
+        version: "0.12.18"
+        python-version: "3.12"
+        enable-cache: true
+    - name: Install dependencies
+      run: uv sync --locked
+    - name: Build sandbox images
+      working-directory: .ci-runner
+      run: make build-docker-runner build-docker-compiler
+    - name: Prepare delegated cgroup v2 parent
+      run: |
+        sudo sh -c 'printf "+memory +pids" > /sys/fs/cgroup/cgroup.subtree_control'
+        sudo sh scripts/prepare-cgroup.sh
+    - name: Run Docker tests with production sandbox settings
+      run: sudo .venv/bin/python -m pytest tests/docker -v
+    - name: Clean up cgroup parent
+      if: always()
+      run: |
+        if sudo test -d /sys/fs/cgroup/hustoj-judger; then
+          sudo find /sys/fs/cgroup/hustoj-judger -mindepth 1 -depth -type d -exec rmdir {} \; 2>/dev/null || true
+          sudo sh -c 'printf "-memory -pids" > /sys/fs/cgroup/hustoj-judger/cgroup.subtree_control' 2>/dev/null || true
+          sudo rmdir /sys/fs/cgroup/hustoj-judger
+        fi

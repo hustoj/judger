@@ -97,13 +97,22 @@ Run offline regression tests with dependencies installed:
 
 ```bash
 uv sync
-uv run python -m unittest tests.test_remote tests.test_judged tests.test_result \
-    tests.test_datautils tests.test_comparer tests.test_language tests.test_runner
+uv run pytest
 ```
 
 Docker compiler/runner tests require a Linux host with the configured
-`compiler:v2` and `runner:v2` images:
+`compiler:v2` and `runner:v2` images, root permissions to manage task directories,
+and a delegated cgroup v2 parent (the same setup as the daemon):
 
 ```bash
-uv run python -m unittest tests.docker
+sudo sh scripts/prepare-cgroup.sh
+sudo .venv/bin/python -m pytest tests/docker -v
 ```
+
+CI runs offline tests on Python 3.10–3.12 and the four Docker language tests
+in a separate Linux job on every push and pull request. That job builds the
+sandbox images from the production Dockerfiles in a pinned `hustoj/runner`
+commit. Update the runner commit in `.github/workflows/ci.yml` when upgrading
+the sandbox. Missing cgroup delegation or failed image builds fail the job;
+Docker tests are not silently skipped. Containers use the production isolation
+settings, without privileged mode or unsafe test overrides.

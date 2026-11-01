@@ -16,7 +16,22 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pylint==3.3.9"]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.3",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["."]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "G", "I", "UP", "B", "BLE", "RET", "A", "C4", "PIE", "RUF100"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
 
 [tool.uv]
 package = false
