@@ -78,9 +78,8 @@ def get_language(language_id) -> LanguageType:
 
 
 class LanguageCentre(object):
-    _languages = {}
-
     def __init__(self, cfg):
+        self._languages = {}
         self.load(cfg)
 
     def load(self, languages):

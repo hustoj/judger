@@ -4,9 +4,16 @@ from judge.language import LanguageCentre
 
 
 class TestLanguage(unittest.TestCase):
+    def test_registry_instances_do_not_share_language_definitions(self):
+        first = LanguageCentre({'language': []})
+        second = LanguageCentre({'language': []})
+        first._languages['test'] = object()
+        self.assertNotIn('test', second._languages)
+
     def test_parse_language(self):
         language = {
             "language_id": 1,
+            "name": "C++",
             "source_name": "Main.cpp",
             "compile_command": "g++",
             "execute_name": "main",
@@ -15,6 +22,7 @@ class TestLanguage(unittest.TestCase):
             "running_args": "",
             'compile_image': '',
             'running_image': '',
+            'enabled': True,
         }
         language_centre = LanguageCentre({'language': [language]})
 
