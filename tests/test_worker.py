@@ -7,16 +7,16 @@ from requests.exceptions import ReadTimeout
 from judge.container.compiler import CompileException, Compiler
 from judge.container.executor import DockerExecutor
 from judge.result import Status
-from judge.worker.woker import Worker
+from judge.worker.worker import Worker
 
 
 class TestWorkerFailures(unittest.TestCase):
-    @patch('judge.worker.woker.Compiler.compile', side_effect=RuntimeError('Docker unavailable'))
+    @patch('judge.worker.worker.Compiler.compile', side_effect=RuntimeError('Docker unavailable'))
     def test_infrastructure_failure_is_not_accepted(self, compile_code):
         worker = Worker()
         worker.prepare = Mock()
         task = Mock(task_id=123)
-        with self.assertLogs('judge.worker.woker', level='ERROR'):
+        with self.assertLogs('judge.worker.worker', level='ERROR'):
             worker.process(task, [])
         self.assertEqual(worker.result.result, Status.RUNTIME_ERROR)
         self.assertEqual(worker.result.as_dict()['runtime_info'], 'Docker unavailable')
