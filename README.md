@@ -15,26 +15,34 @@ This project retrieve task from rabbitmq, get information of solution from husto
 
 **Notice: You should install [runner](https://github.com/hustoj/runner) first on your machine.**
 
-1. You should install python with 3.6 or newer
-2. You should install [poetry](https://github.com/python-poetry/poetry)
-3. install python dependency:
-    
+1. You should install Python 3.10 or newer. [uv](https://docs.astral.sh/uv/) can install it for you.
+2. Install [uv](https://docs.astral.sh/uv/getting-started/installation/).
+3. Install Python dependencies. This creates `.venv`, which `judged.service` runs:
+
     ```bash
-    poetry install
+    uv sync --no-dev
     ```
-4. configure 
+
+    `uv.lock` records wheels on files.pythonhosted.org, so a mirror
+    variable does not redirect `uv sync`. To resolve through Aliyun while
+    updating the lock:
+
+    ```bash
+    UV_DEFAULT_INDEX=https://mirrors.aliyun.com/pypi/simple uv lock
+    ```
+
+4. Configure:
 
     ```bash
     cp judge.sample.toml judge.toml
     ```
-    
-    detail description can see judge.sample.toml, you can modify judge.toml as your actual environment.
-    
-5. run
+
+    See `judge.sample.toml` and edit `judge.toml` for the actual environment.
+
+5. Run:
 
     ```bash
-    pipenv shell
-    python judged.py
+    uv run --no-dev python judged.py
     ```
 
 ## Laravel 13 judge API
@@ -65,9 +73,10 @@ authentication as a substitute for upgrading the daemon.
 
 Build `runner:v2` and `compiler:v2` from the sibling `runner` repository and
 set the image names in `languages.toml`. These binaries require Linux
-cgroup v2 with delegated `memory` and `pids` controllers. Install the supplied
-`judged.service`; its `ExecStartPre` prepares the root-owned
-`/sys/fs/cgroup/hustoj-judger` subtree on every service start.
+cgroup v2 with delegated `memory` and `pids` controllers. Install the supplied `judged.service` only after `uv sync --no-dev`
+in `/srv/hustoj/judger`. The unit runs `.venv/bin/python` and does not
+call uv. A Poetry virtualenv is not on that path. `ExecStartPre` prepares
+the root-owned `/sys/fs/cgroup/hustoj-judger` subtree on every start.
 
 Only that delegated subtree is mounted into each container, at
 `/run/hustoj-cgroup`; the host cgroup root is not exposed writable.
@@ -87,7 +96,8 @@ failures must never leave an Accepted result behind.
 Run offline regression tests with dependencies installed:
 
 ```bash
-python -m unittest tests.test_remote tests.test_judged tests.test_result \
+uv sync
+uv run python -m unittest tests.test_remote tests.test_judged tests.test_result \
     tests.test_datautils tests.test_comparer tests.test_language tests.test_runner
 ```
 
@@ -95,5 +105,5 @@ Docker compiler/runner tests require a Linux host with the configured
 `compiler:v2` and `runner:v2` images:
 
 ```bash
-python -m unittest tests.docker
+uv run python -m unittest tests.docker
 ```
