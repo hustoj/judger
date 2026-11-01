@@ -30,10 +30,10 @@ class Worker(object):
             self.sandbox = self.prepare()
             self.compile()
             self.running()
-            self.sandbox.clean()
         except CompileException as e:
             LOGGER.warning('Task {id} Compile failed: {e}'.format(id=self.task.task_id, e=e))
             self.result.result = Status.COMPILE_ERROR
+            self.result.error = str(e)
         except TimeLimitException:
             LOGGER.error('Task {id} time limit in runner!!'.format(id=self.task.task_id))
             self.result.result = Status.TIME_LIMIT
@@ -42,6 +42,11 @@ class Worker(object):
             self.result.result = Status.RUNTIME_ERROR
         except RuntimeError as e:
             LOGGER.error('Catch Runtime Error: %s', e)
+            self.result.result = Status.RUNTIME_ERROR
+            self.result.error = str(e)
+        finally:
+            if getattr(self, 'sandbox', None) is not None:
+                self.sandbox.clean()
 
     def execute(self, case_item):
         execution = Runner()
@@ -68,6 +73,7 @@ class Worker(object):
             except ExecuteException as e:
                 LOGGER.error('Task %d, case %d failed: code: %d, out: %s, err: %s.',
                              self.task.task_id, index, e.code, e.user_out, e.user_err)
+                self.result.result = Status.RUNTIME_ERROR
                 self.has_exception = True
                 break
 

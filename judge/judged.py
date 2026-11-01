@@ -53,8 +53,6 @@ class Judged(object):
                 return
             worker = Worker()
             worker.process(task, self.dataProvider.get_data(task.problem_id))
-            if worker.has_exception:
-                return
             result = worker.get_result()
             self.api.report(result, task.judge_token)
         except JudgeException as e:

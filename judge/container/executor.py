@@ -3,7 +3,7 @@ import time
 
 import docker
 from docker.errors import NotFound
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, ReadTimeout
 
 LOGGER = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class DockerExecutor(object):
     sandbox = ''
     time_limit = 30  # base max time limit
     base_url = ''
-    sleep_seconds = 30  # sleep when docker connection failed
+    sleep_seconds = 5  # sleep when docker connection failed
 
     def __init__(self) -> None:
         super().__init__()
@@ -39,7 +39,7 @@ class DockerExecutor(object):
             try:
                 self.do_execute()
                 return
-            except ConnectionError as e:
+            except (ConnectionError, ReadTimeout) as e:
                 LOGGER.error('docker running timeout !! %s', e)
                 retries += 1
                 LOGGER.info('retry %d, wait %ds for docker rest', retries, self.sleep_seconds)
@@ -48,33 +48,42 @@ class DockerExecutor(object):
     def do_execute(self):
         # client = docker.from_env()
         client = docker.DockerClient(base_url=self.base_url)
-        # clean
-        client.containers.prune()
-        for cid in self.container_ids:
-            try:
-                c = client.containers.get(cid)
-                c.kill()
-            except NotFound as e:
-                pass
-            self.container_ids.remove(cid)
+        container = None
+        container_id = None
+        try:
+            # Clean containers left behind by an interrupted Docker API call.
+            for cid in list(self.container_ids):
+                try:
+                    client.containers.get(cid).remove(force=True)
+                except NotFound:
+                    pass
+                self.container_ids.remove(cid)
 
-        # start work
-        container = client.containers.run(self.image, self.command(), auto_remove=False,
-                                          network_disabled=True, detach=True,
-                                          read_only=True, volumes=self.volumes(),
-                                          working_dir=self.working_dir
-                                          )
-        container_id = container.id
-        self.container_ids.append(container_id)
+            container = client.containers.run(
+                self.image,
+                self.command(),
+                auto_remove=False,
+                network_disabled=True,
+                detach=True,
+                read_only=True,
+                volumes=self.volumes(),
+                working_dir=self.working_dir,
+            )
+            container_id = container.id
+            self.container_ids.append(container_id)
 
-        self.status = container.wait(timeout=self.time_limit)
-        self.stdout = container.logs(stdout=True, stderr=False)
-        self.stderr = container.logs(stdout=False, stderr=True)
-
-        # cleanup
-        container.remove()
-        self.container_ids.remove(container_id)
-        client.close()
+            self.status = container.wait(timeout=self.time_limit)
+            self.stdout = container.logs(stdout=True, stderr=False)
+            self.stderr = container.logs(stdout=False, stderr=True)
+        finally:
+            if container is not None:
+                try:
+                    container.remove(force=True)
+                except NotFound:
+                    pass
+            if container_id in self.container_ids:
+                self.container_ids.remove(container_id)
+            client.close()
 
     def is_ok(self):
         return self.get_status() == 0
@@ -97,7 +106,7 @@ class DockerExecutor(object):
             self.log_dir(): {
                 'bind': '/var/log/runner',
                 'mode': 'rw'
-            }
+            },
         }
 
     def set_command(self, name):

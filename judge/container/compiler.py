@@ -1,5 +1,7 @@
 #!/bin/env python3
 import logging
+import json
+from pathlib import Path
 
 from docker.errors import DockerException
 
@@ -35,6 +37,19 @@ class Compiler(object):
             compiler.execute(env.path)
             LOGGER.info('Compiler: Task %d finished, result: %s', env.task.task_id, compiler.get_status())
             LOGGER.debug('Compiler stdout: %s', compiler.get_stdout())
+            try:
+                success = json.loads(compiler.get_stdout()).get('success') is True
+            except (ValueError, AttributeError):
+                raise RuntimeError('Invalid compiler response')
+            if not compiler.is_ok() or not success:
+                details = []
+                for name in ['compile.err', 'compile.out']:
+                    path = Path(env.path) / name
+                    if path.is_file():
+                        with path.open(errors='replace') as output:
+                            details.append(output.read(65536))
+                message = '\n'.join(details).strip()
+                raise CompileException(message or compiler.get_stderr().decode(errors='replace'))
         except DockerException as err:
-            LOGGER.error('Docker Exception:', err)
+            LOGGER.error('Docker Exception: %s', err)
             raise RuntimeError("Docker execute failed {err}".format(err=err))

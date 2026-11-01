@@ -64,3 +64,13 @@ class TestJudgeTaskToken(unittest.TestCase):
         self.assertIn('123', output)
         self.assertNotIn(self.job['judge_token'], output)
         self.assertNotIn(self.job['code'], output)
+
+    @patch('judge.judged.Worker')
+    def test_runtime_failure_still_reports_terminal_result(self, worker_class):
+        result = CaseResult.make(Status.RUNTIME_ERROR, 123)
+        worker_class.return_value.has_exception = True
+        worker_class.return_value.get_result.return_value = result
+
+        self.daemon.handle(json.dumps(self.job))
+
+        self.daemon.api.report.assert_called_once_with(result, 'private-task-token')
