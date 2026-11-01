@@ -15,8 +15,6 @@ boto3 = "^1.24.46"
 requests = "^2.32.0"
 flask = "^3.1.0"
 
-[tool.poetry.dev-dependencies]
-
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
@@ -30,3 +28,9 @@ priority = "primary"
 [[tool.poetry.source]]
 name = "PyPI"
 priority = "primary"
+
+
+[dependency-groups]
+dev = [
+    "pylint (==3.3.9)"
+]
