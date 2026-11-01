@@ -35,7 +35,7 @@ class Judged(object):
             if len(jobs) == 0:
                 self.take_rest()
                 continue
-            LOGGER.info("New task arrive: {job}".format(job=jobs))
+            LOGGER.info('Received %d judge task(s)', len(jobs) if isinstance(jobs, list) else 1)
             if isinstance(jobs, list):
                 for job in jobs:
                     self.handle(job)
@@ -43,18 +43,22 @@ class Judged(object):
                 self.handle(jobs)
 
     def handle(self, job):
+        task_id = 'unknown'
         try:
-            worker = Worker()
             task = Task.from_json(job)
+            task_id = task.task_id
+            if not isinstance(task.judge_token, str) or not task.judge_token.strip():
+                raise JudgeException('Judge task token is missing')
             if not self.is_support(task):
                 return
+            worker = Worker()
             worker.process(task, self.dataProvider.get_data(task.problem_id))
             if worker.has_exception:
                 return
             result = worker.get_result()
-            self.api.report(result)
+            self.api.report(result, task.judge_token)
         except JudgeException as e:
-            LOGGER.error("task failed! {job}: {err}".format(job=job, err=e))
+            LOGGER.error('Task %s failed: %s', task_id, e)
 
     def is_support(self, task: Task):
         if task.is_special:

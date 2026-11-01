@@ -11,6 +11,7 @@ compile_image = "runner:v1" # compiler docker image name
 url = "http://localhost:5000/judge/api/" # web api
 judge_id = "1" # judge id when register in hustoj web
 code = "d1553bc6-54f0-43d7-9e23-b0eeccd45341" # judge code
+timeout = 30 # HTTP timeout in seconds; requests use HMAC-SHA256 token version 2
 
 [mq]
 driver = 'sqs'
@@ -31,4 +32,3 @@ queue_url = ''
 
 [worker]
 path = "/tmp/hustoj" # local working path, use shm is better for disk
-

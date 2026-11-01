@@ -95,13 +95,18 @@ class CaseResult(object):
         return Status.is_accept(self.result)
 
     def as_dict(self):
-        return {
+        result = {
             'solution_id': self.solution_id,
             'status': self.result,
-            'error': self.error,
             'time_cost': self.time_to_ms(),
             'memory_cost': self.memory
         }
+        if self.result == Status.COMPILE_ERROR and self.error:
+            result['compile_info'] = self.error
+        if self.result == Status.RUNTIME_ERROR and self.error:
+            result['runtime_info'] = self.error
+
+        return result
 
     def time_to_ms(self):
         return int(self.time_cost / 1000)

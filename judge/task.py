@@ -62,6 +62,10 @@ class Task(object):
     def memory_limit(self):
         return self.info['memory_limit']
 
+    @property
+    def judge_token(self):
+        return self.info.get('judge_token', '')
+
 
 class RabbitMqProvider(object):
     _connection = None
