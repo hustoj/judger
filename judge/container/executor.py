@@ -77,6 +77,7 @@ class DockerExecutor:
                 working_dir=self.working_dir,
                 user='0:0',
                 cap_add=['SYS_PTRACE'],
+                cgroupns='host',
                 security_opt=['no-new-privileges:true'],
                 environment={
                     'RUNNER_CGROUP_MOUNT': '/run/hustoj-cgroup',
